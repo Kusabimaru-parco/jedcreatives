@@ -1,0 +1,267 @@
+---
+import SplitWords from './SplitWords.astro';
+import { contact, socials } from '../data/site';
+
+const field =
+	'mt-2 w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/35 transition duration-300 hover:border-white/25 focus:border-cyan focus:bg-white/[0.07]';
+
+// FormSubmit and Formspree use different hidden fields (spam trap etc.) — only send the right ones.
+const isFormSubmit = contact.formAction.includes('formsubmit.co');
+
+// Icons for the contact rows (24×24). Facebook and LinkedIn marks from Simple Icons (CC0).
+const icons: Record<string, string> = {
+	Email:
+		'<rect x="3" y="5" width="18" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+	Facebook:
+		'<path fill="currentColor" d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07"/>',
+	Instagram:
+		'<rect x="3" y="3" width="18" height="18" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/>',
+	LinkedIn:
+		'<path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/>',
+	Phone:
+		'<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M6.7 3.5h2.4l1.5 4.2-2.2 1.4a11.5 11.5 0 0 0 6.5 6.5l1.4-2.2 4.2 1.5v2.4a2 2 0 0 1-2.2 2A15.8 15.8 0 0 1 4.7 5.7a2 2 0 0 1 2-2.2z"/>',
+};
+
+const items = [
+	{ label: 'Email', value: contact.email, href: `mailto:${contact.email}` },
+	...socials.map((s) => ({ label: s.label, value: s.handle, href: s.href })),
+	{ label: 'Phone', value: contact.phone, href: contact.phoneHref },
+];
+---
+
+<section id="contact" data-scene="contact" class="section overflow-hidden" aria-labelledby="contact-title">
+	<div class="grid-overlay -z-10"></div>
+
+	<div class="container-x grid gap-14 lg:grid-cols-2 lg:gap-20">
+		<div>
+			<p class="reveal eyebrow mb-5">Contact</p>
+			<h2 id="contact-title" class="reveal-title font-display text-[clamp(3.5rem,13vw,9rem)] leading-[0.88] uppercase [--delay:80ms]">
+				<SplitWords text={'Get in\nTouch!'} />
+			</h2>
+			<p class="reveal mt-6 max-w-sm leading-relaxed text-muted [--delay:160ms]">
+				Have a project in mind? Send a message — I usually reply within a day or two.
+			</p>
+
+			<ul class="reveal mt-10 divide-y divide-white/10 border-y border-white/10 [--delay:220ms]">
+				{
+					items.map((item) => (
+						<li>
+							<a
+								href={item.href}
+								class="group flex items-center justify-between gap-4 py-4 text-sm transition duration-300 hover:text-cyan"
+								{...(item.href.startsWith('http') && { target: '_blank', rel: 'noopener' })}
+							>
+								<span class="flex items-center gap-3.5">
+									<span class:list={['contact-icon', `is-${item.label.toLowerCase()}`]} aria-hidden="true">
+										<svg viewBox="0 0 24 24" set:html={icons[item.label] ?? ''} />
+									</span>
+									<span class="eyebrow text-[10px]">{item.label}</span>
+								</span>
+								<span class="font-medium text-white transition duration-300 group-hover:text-cyan">{item.value}</span>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+
+		<form
+			action={contact.formAction}
+			method="POST"
+			class="reveal glass self-start rounded-3xl p-6 sm:p-9 [--delay:150ms]"
+			aria-labelledby="form-title"
+			data-contact-form
+			data-email={contact.email}
+		>
+			<h3 id="form-title" class="font-title text-lg font-semibold tracking-tight uppercase">Email me</h3>
+			<input type="hidden" name="_subject" value="New project inquiry — JED Creatives" />
+			{
+				isFormSubmit ? (
+					<>
+						<input type="hidden" name="_template" value="table" />
+						<input type="hidden" name="_captcha" value="false" />
+						{/* Spam trap: real visitors never see or fill this. */}
+						<input type="text" name="_honey" class="trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+					</>
+				) : (
+					<input type="text" name="_gotcha" class="trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+				)
+			}
+
+			<label class="mt-7 block text-xs font-medium text-white/80">
+				Full Name
+				<input class={field} type="text" name="name" autocomplete="name" required placeholder="Juan Dela Cruz" />
+			</label>
+			<label class="mt-5 block text-xs font-medium text-white/80">
+				Email
+				<input class={field} type="email" name="email" autocomplete="email" required placeholder="you@example.com" />
+			</label>
+			<label class="mt-5 block text-xs font-medium text-white/80">
+				Message
+				<textarea class:list={[field, 'min-h-36 resize-y']} name="message" required placeholder="Tell me about your project…"></textarea>
+			</label>
+
+			<button type="submit" class="btn btn-primary mt-7 w-full disabled:cursor-wait disabled:opacity-70" data-submit>
+				<span class="spinner hidden" aria-hidden="true"></span>
+				<span data-label>Send Message</span>
+			</button>
+
+			<!-- Result of sending (announced to screen readers) -->
+			<p class="form-status mt-4 hidden rounded-xl px-4 py-3 text-sm leading-relaxed" role="status" aria-live="polite" data-form-status></p>
+		</form>
+	</div>
+</section>
+
+<style>
+	/* Spam-trap field: off-screen, not display:none (some bots skip hidden fields). */
+	.trap {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		opacity: 0;
+	}
+	.spinner {
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		border: 2px solid rgb(255 255 255 / 0.35);
+		border-top-color: #fff;
+		animation: spin 0.8s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			rotate: 360deg;
+		}
+	}
+	.form-status[data-state='success'] {
+		background: rgb(43 212 106 / 0.12);
+		border: 1px solid rgb(43 212 106 / 0.4);
+		color: #b9f5cf;
+	}
+	.form-status[data-state='error'] {
+		background: rgb(255 80 100 / 0.1);
+		border: 1px solid rgb(255 80 100 / 0.4);
+		color: #ffc6cd;
+	}
+	.form-status a {
+		color: #fff;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	/* Contact icons: white on frosted glass; the brand colour fills in on hover. */
+	.contact-icon {
+		display: grid;
+		place-items: center;
+		flex: none;
+		width: 2.4rem;
+		height: 2.4rem;
+		border-radius: 0.8rem;
+		color: #fff;
+		background: rgb(255 255 255 / 0.08);
+		border: 1px solid rgb(255 255 255 / 0.16);
+		box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15);
+		transition:
+			background 0.35s var(--ease-soft),
+			border-color 0.35s,
+			box-shadow 0.35s,
+			scale 0.35s var(--ease-soft);
+	}
+	.contact-icon svg {
+		width: 1.1rem;
+		height: 1.1rem;
+	}
+	.group:hover .contact-icon,
+	.group:focus-visible .contact-icon {
+		scale: 1.08;
+		border-color: transparent;
+		box-shadow: 0 6px 18px -6px var(--brand, rgb(63 184 255 / 0.8));
+		background: var(--brand-bg, var(--brand));
+	}
+	.contact-icon.is-email {
+		--brand: #3fb8ff;
+	}
+	.contact-icon.is-facebook {
+		--brand: #1877f2;
+	}
+	.contact-icon.is-instagram {
+		--brand: #e1306c;
+		--brand-bg: radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285aeb 90%);
+	}
+	.contact-icon.is-linkedin {
+		--brand: #0a66c2;
+	}
+	.contact-icon.is-phone {
+		--brand: #22c55e;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.contact-icon {
+			transition: none;
+		}
+	}
+	input:focus,
+	textarea:focus {
+		outline: none;
+	}
+	input:focus-visible,
+	textarea:focus-visible {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: 2px;
+	}
+</style>
+
+<script>
+	// Send the form in the background and show the result here, instead of leaving the site.
+	// Without JS the form still posts normally to the same service.
+	const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+
+	if (form) {
+		const button = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+		const label = form.querySelector<HTMLElement>('[data-label]')!;
+		const spinner = form.querySelector<HTMLElement>('.spinner')!;
+		const status = form.querySelector<HTMLElement>('[data-form-status]')!;
+		const email = form.dataset.email ?? '';
+
+		const show = (state: 'success' | 'error', html: string) => {
+			status.dataset.state = state;
+			status.innerHTML = html;
+			status.classList.remove('hidden');
+		};
+		const busy = (on: boolean) => {
+			button.disabled = on;
+			spinner.classList.toggle('hidden', !on);
+			label.textContent = on ? 'Sending…' : 'Send Message';
+		};
+		const fallback = `Please email me directly at <a href="mailto:${email}">${email}</a>.`;
+
+		// FormSubmit answers JSON on its /ajax/ endpoint; Formspree does when asked with Accept: application/json.
+		const endpoint = () => {
+			const url = form.action;
+			return url.includes('formsubmit.co/') && !url.includes('/ajax/') ? url.replace('formsubmit.co/', 'formsubmit.co/ajax/') : url;
+		};
+
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			status.classList.add('hidden');
+			busy(true);
+			try {
+				const res = await fetch(endpoint(), {
+					method: 'POST',
+					body: new FormData(form),
+					headers: { Accept: 'application/json' },
+				});
+				const data = await res.json().catch(() => ({}));
+				// FormSubmit: { success: "true" | "false", message }   Formspree: { ok: true } or { errors: [...] }
+				const ok = res.ok && String(data.success ?? data.ok ?? 'true') !== 'false' && !data.errors;
+				if (!ok) throw new Error(data.message || data.errors?.[0]?.message || `HTTP ${res.status}`);
+				form.reset();
+				show('success', "Thanks! Your message is on its way — I'll get back to you within a day or two.");
+			} catch (err) {
+				console.warn('Contact form failed:', err);
+				show('error', `Sorry, the message couldn't be sent. ${fallback}`);
+			} finally {
+				busy(false);
+			}
+		});
+	}
+</script>

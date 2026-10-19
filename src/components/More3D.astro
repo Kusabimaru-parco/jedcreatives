@@ -1,0 +1,55 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import VideoCard from './VideoCard.astro';
+import { more3D, reels } from '../data/projects';
+---
+
+<section class="section" data-scene="more3d" aria-labelledby="more3d-title">
+
+	<div class="container-x">
+		<SectionTitle
+			id="more3d-title"
+			title="More 3D Visuals"
+			description="3D motion graphics — school production openers, title graphics and device mockups."
+		/>
+		<!-- Desktop: rows of three; a leftover pair shares the last row (two wider cards), so there are no gaps.
+		     Tablet: rows of two; a leftover single card spans the full width. -->
+		<div class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
+			{
+				more3D.map((p, i) => (
+					<div
+						class:list={[
+							'reveal lg:col-span-2',
+							more3D.length % 3 === 2 && i >= more3D.length - 2 && 'lg:col-span-3',
+							more3D.length % 2 === 1 && i === more3D.length - 1 && 'sm:col-span-2 lg:col-span-2',
+							more3D.length % 2 === 1 && i === more3D.length - 1 && more3D.length % 3 === 2 && 'lg:col-span-3',
+						]}
+						style={`--delay:${(i % 3) * 100}ms`}
+					>
+						<VideoCard project={p} />
+					</div>
+				))
+			}
+		</div>
+
+		<!-- Vertical reels: swipeable row on mobile, three columns on larger screens.
+		     Clicking one opens it on an iPhone in the lightbox (`phone`). -->
+		<div class="mt-24 sm:mt-32">
+			<SectionTitle id="reels-title" title="Reels & Visual FX" />
+			<div
+				class="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0 lg:mx-auto lg:max-w-4xl"
+				role="region"
+				aria-labelledby="reels-title"
+				tabindex="0"
+			>
+				{
+					reels.map((p, i) => (
+						<div class="reveal w-[68%] shrink-0 snap-center sm:w-auto" style={`--delay:${i * 100}ms`}>
+							<VideoCard project={p} phone />
+						</div>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</section>

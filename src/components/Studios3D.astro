@@ -1,0 +1,32 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import VideoCard from './VideoCard.astro';
+import { studios } from '../data/projects';
+---
+
+<section class="section" data-scene="studios" aria-labelledby="studios-title">
+	<div class="grid-overlay -z-10"></div>
+
+	<div class="container-x">
+		<SectionTitle
+			id="studios-title"
+			eyebrow="3D"
+			title="3D Studios"
+			description="Virtual broadcast sets and 3D environments, modeled, lit and rendered in Blender."
+		/>
+		<ul class="grid gap-10 md:grid-cols-2 md:gap-6">
+			{
+				studios.map((p, i) => (
+					<li class="reveal" style={`--delay:${i * 100}ms`}>
+						<VideoCard project={p} compact />
+						<div class="mt-5 flex flex-wrap items-center gap-3">
+							<h3 class="font-title text-base font-semibold tracking-tight uppercase">{p.title}</h3>
+							<span class="pill px-2.5 py-1 text-[10px]">{p.category}</span>
+						</div>
+						<p class="mt-2.5 text-sm leading-relaxed text-muted">{p.description}</p>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>

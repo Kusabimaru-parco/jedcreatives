@@ -1,0 +1,23 @@
+---
+import SplitWords from './SplitWords.astro';
+
+interface Props {
+	id: string;
+	eyebrow?: string;
+	title: string;
+	/** Glass tag shown beside the title, e.g. "2025 Projects". */
+	tag?: string;
+	description?: string;
+}
+
+const { id, eyebrow, title, tag, description } = Astro.props;
+---
+
+<header class="mb-10 sm:mb-14">
+	{eyebrow && <p class="reveal eyebrow mb-5">{eyebrow}</p>}
+	<div class="flex flex-wrap items-end gap-x-5 gap-y-4">
+		<h2 id={id} class="reveal-title section-title [--delay:80ms]"><SplitWords text={title} /></h2>
+		{tag && <span class="reveal pill mb-1 [--delay:160ms] sm:mb-2">{tag}</span>}
+	</div>
+	{description && <p class="reveal mt-5 max-w-xl leading-relaxed text-muted [--delay:160ms]">{description}</p>}
+</header>

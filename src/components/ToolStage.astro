@@ -1,0 +1,1451 @@
+---
+// Decorative "app window" behind the About photo. It shows a CSS-built mock of whichever tool is selected
+// in the floating tool orbit (Photoshop, Premiere Pro, After Effects, Krita, Blender).
+//
+// Everything inside is sized in --u = 1/640 of the window's width (container query units), so the whole
+// UI scales as one picture at any screen size — nothing gets clipped or reflows.
+// Switch apps by dispatching on the element:  stage.dispatchEvent(new CustomEvent('show', { detail: 'blender' }))
+import { asset } from '../lib/asset';
+
+interface Props {
+	/** App shown initially (and without JS). */
+	active?: string;
+	class?: string;
+}
+const { active = 'premiere', class: className } = Astro.props;
+
+const apps = [
+	{ id: 'photoshop', name: 'Adobe Photoshop', file: 'poster_final.psd @ 66.7% (Title, RGB/8)', accent: '#31a8ff' },
+	{ id: 'premiere', name: 'Adobe Premiere Pro', file: 'JED_Showreel — Sequence 01', accent: '#b38cff' },
+	{ id: 'after-effects', name: 'Adobe After Effects', file: 'title_anim.aep — Comp 1', accent: '#7f8cff' },
+	{ id: 'krita', name: 'Krita', file: 'character_sketch.kra', accent: '#ff5fa2' },
+	{ id: 'blender', name: 'Blender', file: 'studio_set.blend', accent: '#ff8a1f' },
+];
+const accentOf = (id: string) => apps.find((a) => a.id === id)?.accent ?? '#3fb8ff';
+
+const poster = (slug: string) => `url(${asset(`media/posters/${slug}.webp`)})`;
+
+// Deterministic waveform for the Premiere audio tracks (same output every build).
+const wave = (seed: number, n = 160) => {
+	let x = seed;
+	const rand = () => (x = (x * 9301 + 49297) % 233280) / 233280;
+	return Array.from({ length: n }, (_, i) => {
+		const h = Math.max(0.08, rand() * (0.35 + 0.65 * Math.abs(Math.sin(i / 9 + seed))));
+		return `M${i * 2 + 0.5} ${10 - h * 9}V${10 + h * 9}`;
+	}).join('');
+};
+const waveA = wave(3);
+const waveB = wave(11);
+---
+
+<div
+	class:list={['ts pointer-events-none select-none', className]}
+	style={`--accent:${accentOf(active)}`}
+	aria-hidden="true"
+	data-tool-stage
+>
+	<div class="ts-window">
+		<div class="ts-inner">
+			<!-- Title bar -->
+			<div class="ts-titlebar">
+				<span class="ts-dots"><i></i><i></i><i></i></span>
+				{
+					apps.map((a) => (
+						<span class:list={['ts-title', a.id === active && 'is-active']} data-app={a.id} data-accent={a.accent}>
+							<b>{a.name}</b>
+							<span> — {a.file}</span>
+						</span>
+					))
+				}
+			</div>
+
+			<div class="ts-body">
+				<!-- ================= PHOTOSHOP ================= -->
+				<div class:list={['ts-app ps', active === 'photoshop' && 'is-active']} data-app="photoshop">
+					<div class="bar ps-opts"><i style="--w:44"></i><i style="--w:24"></i><i style="--w:60"></i><i style="--w:30"></i><i style="--w:38"></i></div>
+					<div class="toolbar">{Array.from({ length: 11 }, (_, i) => <i class:list={[i === 2 && 'on']}></i>)}</div>
+					<div class="ps-canvas">
+						<div class="ps-board">
+							<div class="ps-glow"></div>
+							<img src={asset('img/cutouts/portrait-sm.webp')} alt="" class="ps-photo" loading="lazy" decoding="async" />
+							<div class="ps-type">JED</div>
+							<div class="ps-sub">CREATIVES</div>
+							<div class="ps-select">{Array.from({ length: 8 }, () => <i></i>)}</div>
+						</div>
+						<span class="t ps-zoom">66.67%</span>
+					</div>
+					<div class="side ps-layers">
+						<div class="tabs"><span class="on">Layers</span><span>Channels</span><span>Paths</span></div>
+						{
+							['Title', 'Glow', 'Jameel', 'Shape 2', 'Gradient', 'Background'].map((n, i) => (
+								<div class:list={['ps-row', i === 0 && 'on']}>
+									<i class="eye"></i>
+									<i class="thumb" style={`--c:${['#fff', '#3fb8ff', '#8a6a52', '#1e4dff', '#0a1a4a', '#02040f'][i]}`}></i>
+									<span class="t">{n}</span>
+								</div>
+							))
+						}
+						<div class="ps-foot">{Array.from({ length: 6 }, () => <i></i>)}</div>
+					</div>
+				</div>
+
+				<!-- ================= PREMIERE PRO ================= -->
+				<div class:list={['ts-app pr', active === 'premiere' && 'is-active']} data-app="premiere">
+					<div class="pr-bin">
+						<span class="t head">Project: JED_Showreel</span>
+						<div class="pr-grid">
+							{
+								['promovid', 'isdae-fv', 'alerto-24', 'lions-update'].map((s, i) => (
+									<div class="pr-item">
+										<i style={`--img:${poster(s)}`}></i>
+										<span class="t">{['PROMO.mp4', 'ISDAE_FV.mp4', 'A24_OPEN.mov', 'LIONS.mov'][i]}</span>
+									</div>
+								))
+							}
+						</div>
+					</div>
+					<div class="pr-monitor">
+						<span class="t head">Program: Sequence 01</span>
+						<div class="pr-frame" style={`--img:${poster('promovid')}`}></div>
+						<span class="t pr-tc">00:00:27:14</span>
+						<div class="pr-ctrl">{Array.from({ length: 5 }, (_, i) => <i class:list={[i === 2 && 'play']}></i>)}</div>
+					</div>
+					<div class="pr-tl">
+						<div class="pr-ruler"><span class="t" style="--x:60">00:00:20:00</span><span class="t" style="--x:240">00:00:25:00</span><span class="t" style="--x:420">00:00:30:00</span></div>
+						<div class="pr-work"></div>
+						<div class="trk"><b class="t">V2</b><div class="lane">
+							<span class="clip fx" style="--x:90;--w:130"></span><span class="clip fx" style="--x:420;--w:80"></span>
+						</div></div>
+						<div class="trk"><b class="t">V1</b><div class="lane">
+							<span class="clip v" style="--x:0;--w:150"><em>C0405</em></span>
+							<span class="clip v" style="--x:154;--w:120"><em>MVI_8</em></span>
+							<span class="clip v" style="--x:278;--w:170"><em>C0405.MP4</em></span>
+							<span class="clip v" style="--x:452;--w:150"><em>MVI_92</em></span>
+						</div></div>
+						<div class="trk tall"><b class="t">V0</b><div class="lane">
+							{
+								[[0, 140, 'isdae-gfx'], [144, 110, 'isdae-fv'], [258, 170, 'promovid'], [432, 170, 'alerto-24']].map(([x, w, s]) => (
+									<span class="clip th" style={`--x:${x};--w:${w};--img:${poster(s as string)}`}></span>
+								))
+							}
+						</div></div>
+						<div class="trk"><b class="t">A1</b><div class="lane">
+							<span class="clip a" style="--x:0;--w:448"><svg viewBox="0 0 320 20" preserveAspectRatio="none"><path d={waveA}></path></svg></span>
+							<span class="clip a" style="--x:452;--w:150"><svg viewBox="0 0 320 20" preserveAspectRatio="none"><path d={waveB}></path></svg></span>
+						</div></div>
+						<div class="trk"><b class="t">A2</b><div class="lane">
+							<span class="clip a a2" style="--x:90;--w:510"><svg viewBox="0 0 320 20" preserveAspectRatio="none"><path d={waveB}></path></svg></span>
+						</div></div>
+						<div class="playhead"><i></i></div>
+					</div>
+				</div>
+
+				<!-- ================= AFTER EFFECTS ================= -->
+				<div class:list={['ts-app ae', active === 'after-effects' && 'is-active']} data-app="after-effects">
+					<div class="ae-view">
+						<span class="t head">Composition: Title_Anim</span>
+						<div class="ae-comp">
+							<div class="ae-safe"></div>
+							<div class="ae-path"></div>
+							<i class="ae-key" style="--x:53;--y:133"></i><i class="ae-key" style="--x:163;--y:53"></i><i class="ae-key" style="--x:273;--y:133"></i>
+							<div class="ae-mx"><div class="ae-my"><div class="ae-dot"></div></div></div>
+							<div class="ae-word">MOTION</div>
+						</div>
+					</div>
+					<div class="ae-tl">
+						<div class="ae-names">
+							<div class="ae-hrow t"><span>#</span><span>Layer Name</span></div>
+							{
+								[
+									['1', 'Title', '#e8c33c'],
+									['2', 'Shape Layer 1', '#7f8cff'],
+									['', 'Position', ''],
+									['3', 'Null 1', '#d65a5a'],
+									['4', 'BG Solid', '#5ab36b'],
+								].map(([n, name, c]) => (
+									<div class:list={['ae-row t', !n && 'prop']}>
+										<span>{n}</span>
+										{c ? <i style={`--c:${c}`}></i> : <i class="none"></i>}
+										<span>{name}</span>
+									</div>
+								))
+							}
+						</div>
+						<div class="ae-lanes">
+							<div class="ae-ruler t">{['0s', '1s', '2s', '3s', '4s'].map((s, i) => <span style={`--x:${i * 100}`}>{s}</span>)}</div>
+							<div class="ae-lane"><span class="bar" style="--x:0;--w:430;--c:#e8c33c"></span><b class="kf" style="--x:40"></b><b class="kf" style="--x:120"></b></div>
+							<div class="ae-lane"><span class="bar" style="--x:20;--w:400;--c:#7f8cff"></span></div>
+							<div class="ae-lane prop"><b class="kf on" style="--x:20"></b><b class="kf on" style="--x:220"></b><b class="kf on" style="--x:420"></b><svg viewBox="0 0 400 20" preserveAspectRatio="none" class="ae-graph"><path d="M0 18 C 80 18, 120 2, 200 2 S 320 18, 400 18"></path></svg></div>
+							<div class="ae-lane"><span class="bar" style="--x:0;--w:430;--c:#d65a5a"></span></div>
+							<div class="ae-lane"><span class="bar" style="--x:0;--w:430;--c:#5ab36b"></span></div>
+							<div class="playhead"><i></i></div>
+						</div>
+					</div>
+				</div>
+
+				<!-- ================= KRITA ================= -->
+				<div class:list={['ts-app kr', active === 'krita' && 'is-active']} data-app="krita">
+					<div class="bar kr-top"><i style="--w:40"></i><i style="--w:56"></i><i style="--w:32"></i><i style="--w:48"></i></div>
+					<div class="toolbar">{Array.from({ length: 11 }, (_, i) => <i class:list={[i === 0 && 'on']}></i>)}</div>
+					<div class="kr-canvas">
+						<div class="kr-paper">
+							<div class="kr-wash"></div>
+							<svg viewBox="0 0 410 318" class="kr-art">
+								<path class="ink" d="M70 250 C 110 150, 170 120, 205 165 S 280 255, 335 140"></path>
+								<path class="ink thin" d="M95 90 C 140 60, 200 70, 240 95"></path>
+								<path class="ink pink" d="M150 205 C 180 230, 230 232, 262 205"></path>
+								<path class="stroke" d="M60 120 C 120 40, 230 40, 260 110 S 330 230, 370 200"></path>
+							</svg>
+						</div>
+					</div>
+					<div class="side kr-dock">
+						<span class="t head">Advanced Color Selector</span>
+						<div class="kr-wheel"><div class="kr-ring"></div><div class="kr-square"></div><i class="kr-pick"></i></div>
+						<span class="t head">Brush Presets</span>
+						<div class="kr-brushes">{Array.from({ length: 12 }, (_, i) => <i class:list={[i === 5 && 'on']} style={`--h:${[20, 45, 70, 95, 30, 60, 85, 15, 50, 75, 40, 90][i]}%`}></i>)}</div>
+						<div class="kr-slider t"><span>Size</span><i style="--v:38%"></i><span>24 px</span></div>
+						<div class="kr-slider t"><span>Opacity</span><i style="--v:100%"></i><span>100%</span></div>
+					</div>
+				</div>
+
+				<!-- ================= BLENDER ================= -->
+				<div class:list={['ts-app bl', active === 'blender' && 'is-active']} data-app="blender">
+					<div class="bar bl-head"><span class="t bl-mode">Object Mode</span><span class="t">View</span><span class="t">Select</span><span class="t">Add</span><span class="t">Object</span></div>
+					<div class="bl-view">
+						<span class="t bl-label">User Perspective<br />(1) Collection | Cube</span>
+						<div class="bl-floor"><i class="ax x"></i><i class="ax y"></i></div>
+						<div class="bl-scene">
+							<div class="bl-cube">
+								<i class="f front"></i><i class="f back"></i><i class="f right"></i><i class="f left"></i><i class="f top"></i><i class="f bottom"></i>
+							</div>
+						</div>
+						<div class="bl-gizmo"><i class="g x"><b>X</b></i><i class="g y"><b>Y</b></i><i class="g z"><b>Z</b></i></div>
+					</div>
+					<div class="side bl-out">
+						{
+							[
+								['Scene Collection', 0, ''],
+								['Collection', 1, ''],
+								['Camera', 2, 'cam'],
+								['Cube', 2, 'mesh'],
+								['Light', 2, 'light'],
+							].map(([n, d, k]) => (
+								<div class:list={['bl-orow t', n === 'Cube' && 'on']} style={`--d:${d}`}>
+									<i class={k as string}></i>
+									{n}
+								</div>
+							))
+						}
+					</div>
+					<div class="side bl-props">
+						<div class="bl-tabs">{Array.from({ length: 8 }, (_, i) => <i class:list={[i === 3 && 'on']}></i>)}</div>
+						<div class="bl-fields">
+							{['Location X', 'Y', 'Z', 'Rotation X', 'Y', 'Z', 'Scale X'].map((n, i) => (
+								<div class="bl-field t"><span>{n}</span><i>{['0 m', '0 m', '1 m', '0°', '0°', '45°', '1.000'][i]}</i></div>
+							))}
+						</div>
+					</div>
+					<div class="bl-time">
+						<div class="bl-nums t">{[0, 20, 40, 60, 80, 100, 120].map((n, i) => <span style={`--x:${i * 70}`}>{n}</span>)}</div>
+						<div class="bl-keys">{[30, 120, 260, 330].map((x) => <b style={`--x:${x}`}></b>)}</div>
+						<div class="playhead"><i></i></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	/* ---------- Window ---------- */
+	/* Feathered on every edge so the window melts into the background like a thought. */
+	.ts {
+		perspective: 1400px;
+		--feather-x: linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+		--feather-y: linear-gradient(to bottom, transparent 0%, #000 6%, #000 84%, transparent 100%);
+		-webkit-mask-image: var(--feather-x), var(--feather-y);
+		-webkit-mask-composite: source-in;
+		mask-image: var(--feather-x), var(--feather-y);
+		mask-composite: intersect;
+	}
+	.ts-window {
+		container-type: inline-size;
+		aspect-ratio: 640 / 386;
+		border-radius: 18px;
+		overflow: hidden;
+		background: linear-gradient(180deg, rgb(10 18 54 / 0.9), rgb(5 10 34 / 0.9));
+		border: 1px solid rgb(255 255 255 / 0.08);
+		box-shadow:
+			0 30px 70px -34px rgb(0 0 0 / 0.75),
+			0 0 90px -30px var(--accent);
+		transform: rotateY(calc(-6deg + var(--mx, 0) * 2deg)) rotateX(calc(3deg - var(--my, 0) * 1.5deg));
+		transition:
+			transform 1.2s var(--ease-soft),
+			box-shadow 1s var(--ease-soft);
+	}
+	.ts-inner {
+		--u: calc(100cqw / 640);
+		position: relative;
+		height: 100%;
+		font-size: calc(var(--u) * 8);
+		line-height: 1.2;
+		color: rgb(255 255 255 / 0.6);
+	}
+	.ts-inner :global(*) {
+		box-sizing: border-box;
+	}
+	.t {
+		font-size: calc(var(--u) * 7.5);
+		color: rgb(255 255 255 / 0.55);
+		white-space: nowrap;
+	}
+	.head {
+		display: block;
+		padding: calc(var(--u) * 4) calc(var(--u) * 6);
+		border-bottom: 1px solid rgb(255 255 255 / 0.06);
+	}
+
+	.ts-titlebar {
+		position: relative;
+		height: calc(var(--u) * 24);
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 10);
+		padding-inline: calc(var(--u) * 10);
+		background: rgb(255 255 255 / 0.04);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+		box-shadow: inset 0 calc(var(--u) * 2) 0 var(--accent);
+		transition: box-shadow 0.6s var(--ease-soft);
+	}
+	.ts-dots {
+		display: flex;
+		gap: calc(var(--u) * 4);
+	}
+	.ts-dots i {
+		width: calc(var(--u) * 7);
+		height: calc(var(--u) * 7);
+		border-radius: 50%;
+		background: rgb(255 255 255 / 0.18);
+	}
+	.ts-title {
+		position: absolute;
+		left: calc(var(--u) * 46);
+		font-size: calc(var(--u) * 8.5);
+		white-space: nowrap;
+		color: rgb(255 255 255 / 0.5);
+		opacity: 0;
+		transition: opacity 0.9s var(--ease-soft);
+	}
+	.ts-title b {
+		color: #fff;
+		font-weight: 600;
+	}
+	.ts-title.is-active {
+		opacity: 1;
+	}
+
+	.ts-body {
+		position: relative;
+		height: calc(var(--u) * 362);
+	}
+	/* App switch: cross-fade with a slight settle. Inactive apps pause their animations. */
+	/* Smooth switch: the old app blurs out while the new one comes into focus. */
+	.ts-app {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		visibility: hidden;
+		scale: 0.98;
+		filter: blur(6px);
+		transition:
+			opacity 0.9s var(--ease-soft),
+			scale 0.9s var(--ease-soft),
+			filter 0.9s var(--ease-soft),
+			visibility 0s linear 0.9s;
+	}
+	.ts-app.is-active {
+		opacity: 1;
+		visibility: visible;
+		scale: 1;
+		filter: none;
+		transition-delay: 0s;
+	}
+	.ts-app:not(.is-active) :global(*),
+	.ts:not(.is-live) :global(*) {
+		animation-play-state: paused !important;
+	}
+
+	/* ---------- Shared bits ---------- */
+	.bar {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: calc(var(--u) * 16);
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 6);
+		padding-left: calc(var(--u) * 34);
+		background: rgb(255 255 255 / 0.035);
+		border-bottom: 1px solid rgb(255 255 255 / 0.06);
+	}
+	.bar i {
+		width: calc(var(--u) * var(--w));
+		height: calc(var(--u) * 7);
+		border-radius: calc(var(--u) * 2);
+		background: rgb(255 255 255 / 0.1);
+	}
+	.toolbar {
+		position: absolute;
+		left: 0;
+		top: calc(var(--u) * 16);
+		bottom: 0;
+		width: calc(var(--u) * 26);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: calc(var(--u) * 7);
+		padding-top: calc(var(--u) * 8);
+		background: rgb(255 255 255 / 0.03);
+		border-right: 1px solid rgb(255 255 255 / 0.06);
+	}
+	.toolbar i {
+		width: calc(var(--u) * 12);
+		height: calc(var(--u) * 12);
+		border-radius: calc(var(--u) * 3);
+		background: rgb(255 255 255 / 0.12);
+	}
+	.toolbar i.on {
+		background: var(--accent);
+		box-shadow: 0 0 calc(var(--u) * 6) var(--accent);
+	}
+	.side {
+		position: absolute;
+		right: 0;
+		width: calc(var(--u) * 172);
+		background: rgb(255 255 255 / 0.04);
+		border-left: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.playhead {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: calc(var(--u) * 1.5);
+		background: var(--ph, #3fb8ff);
+		box-shadow: 0 0 calc(var(--u) * 6) var(--ph, #3fb8ff);
+		animation: scrub var(--dur, 14s) linear infinite;
+	}
+	.playhead i {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		translate: -50% 0;
+		width: calc(var(--u) * 9);
+		height: calc(var(--u) * 10);
+		border-radius: calc(var(--u) * 2) calc(var(--u) * 2) calc(var(--u) * 5) calc(var(--u) * 5);
+		background: var(--ph, #3fb8ff);
+	}
+	@keyframes scrub {
+		from {
+			translate: calc(var(--u) * var(--from, 0)) 0;
+		}
+		to {
+			translate: calc(var(--u) * var(--to, 600)) 0;
+		}
+	}
+
+	/* ---------- Photoshop ---------- */
+	.ps-canvas {
+		position: absolute;
+		left: calc(var(--u) * 26);
+		right: calc(var(--u) * 172);
+		top: calc(var(--u) * 16);
+		bottom: 0;
+		background:
+			radial-gradient(circle at 50% 50%, rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.35)),
+			rgb(0 0 0 / 0.2);
+	}
+	.ps-board {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		translate: -50% -50%;
+		width: calc(var(--u) * 176);
+		height: calc(var(--u) * 246);
+		overflow: hidden;
+		border-radius: calc(var(--u) * 2);
+		background: linear-gradient(165deg, #050b2a 0%, #0a1a4a 35%, #1e4dff 75%, #3fb8ff 100%);
+		box-shadow: 0 calc(var(--u) * 10) calc(var(--u) * 30) rgb(0 0 0 / 0.5);
+	}
+	.ps-glow {
+		position: absolute;
+		inset: 30% -20% -10%;
+		background: radial-gradient(closest-side, rgb(63 184 255 / 0.7), transparent);
+	}
+	.ps-photo {
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		translate: -50% 0;
+		height: 74%;
+		width: auto;
+		max-width: none;
+	}
+	.ps-type {
+		position: absolute;
+		top: calc(var(--u) * 12);
+		inset-inline: 0;
+		text-align: center;
+		font-family: var(--font-display);
+		font-size: calc(var(--u) * 68);
+		line-height: 0.9;
+		color: #fff;
+		letter-spacing: 0.02em;
+	}
+	.ps-sub {
+		position: absolute;
+		top: calc(var(--u) * 76);
+		inset-inline: 0;
+		text-align: center;
+		font-size: calc(var(--u) * 8);
+		letter-spacing: 0.4em;
+		color: rgb(255 255 255 / 0.85);
+	}
+	/* Marching-ants selection with transform handles around the title. */
+	.ps-select {
+		position: absolute;
+		top: calc(var(--u) * 10);
+		left: calc(var(--u) * 34);
+		width: calc(var(--u) * 108);
+		height: calc(var(--u) * 80);
+		--ant: calc(var(--u) * 4);
+		background:
+			linear-gradient(90deg, #fff 50%, #000 0) top / calc(var(--ant) * 2) 1px repeat-x,
+			linear-gradient(90deg, #fff 50%, #000 0) bottom / calc(var(--ant) * 2) 1px repeat-x,
+			linear-gradient(0deg, #fff 50%, #000 0) left / 1px calc(var(--ant) * 2) repeat-y,
+			linear-gradient(0deg, #fff 50%, #000 0) right / 1px calc(var(--ant) * 2) repeat-y;
+		animation: ants 0.8s linear infinite;
+	}
+	@keyframes ants {
+		to {
+			background-position:
+				calc(var(--ant) * 2) 0,
+				calc(var(--ant) * -2) 100%,
+				0 calc(var(--ant) * -2),
+				100% calc(var(--ant) * 2);
+		}
+	}
+	.ps-select i {
+		position: absolute;
+		width: calc(var(--u) * 5);
+		height: calc(var(--u) * 5);
+		translate: -50% -50%;
+		background: #fff;
+		border: 1px solid #1e4dff;
+	}
+	.ps-select i:nth-child(1) { left: 0; top: 0; }
+	.ps-select i:nth-child(2) { left: 50%; top: 0; }
+	.ps-select i:nth-child(3) { left: 100%; top: 0; }
+	.ps-select i:nth-child(4) { left: 100%; top: 50%; }
+	.ps-select i:nth-child(5) { left: 100%; top: 100%; }
+	.ps-select i:nth-child(6) { left: 50%; top: 100%; }
+	.ps-select i:nth-child(7) { left: 0; top: 100%; }
+	.ps-select i:nth-child(8) { left: 0; top: 50%; }
+	.ps-zoom {
+		position: absolute;
+		left: calc(var(--u) * 6);
+		bottom: calc(var(--u) * 5);
+	}
+	.ps-layers {
+		top: calc(var(--u) * 16);
+		bottom: 0;
+	}
+	.tabs {
+		display: flex;
+		gap: calc(var(--u) * 10);
+		padding: calc(var(--u) * 5) calc(var(--u) * 8);
+		font-size: calc(var(--u) * 7.5);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.tabs .on {
+		color: #fff;
+		box-shadow: 0 calc(var(--u) * 5) 0 calc(var(--u) * -3.5) var(--accent);
+	}
+	.ps-row {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 7);
+		height: calc(var(--u) * 30);
+		padding-inline: calc(var(--u) * 8);
+		border-bottom: 1px solid rgb(255 255 255 / 0.04);
+	}
+	.ps-row.on {
+		background: color-mix(in srgb, var(--accent) 22%, transparent);
+	}
+	.ps-row.on .t {
+		color: #fff;
+	}
+	.ps-row .eye {
+		width: calc(var(--u) * 7);
+		height: calc(var(--u) * 5);
+		border-radius: 50%;
+		border: 1px solid rgb(255 255 255 / 0.5);
+	}
+	.ps-row .thumb {
+		width: calc(var(--u) * 24);
+		height: calc(var(--u) * 18);
+		border-radius: calc(var(--u) * 2);
+		background: linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c) 40%, #02040f));
+		border: 1px solid rgb(255 255 255 / 0.15);
+	}
+	.ps-foot {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		display: flex;
+		justify-content: flex-end;
+		gap: calc(var(--u) * 6);
+		padding: calc(var(--u) * 6) calc(var(--u) * 8);
+		border-top: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.ps-foot i {
+		width: calc(var(--u) * 9);
+		height: calc(var(--u) * 9);
+		border-radius: calc(var(--u) * 2);
+		background: rgb(255 255 255 / 0.14);
+	}
+
+	/* ---------- Premiere Pro ---------- */
+	.pr-bin,
+	.pr-monitor {
+		position: absolute;
+		top: 0;
+		height: calc(var(--u) * 172);
+		background: rgb(255 255 255 / 0.03);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.pr-bin {
+		left: 0;
+		width: calc(var(--u) * 196);
+		border-right: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.pr-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: calc(var(--u) * 8);
+		padding: calc(var(--u) * 8);
+	}
+	.pr-item i {
+		display: block;
+		aspect-ratio: 16 / 9;
+		border-radius: calc(var(--u) * 3);
+		background: var(--img) center / cover, #1a2f7a;
+		border: 1px solid rgb(255 255 255 / 0.1);
+	}
+	.pr-item .t {
+		display: block;
+		margin-top: calc(var(--u) * 3);
+		font-size: calc(var(--u) * 6.5);
+	}
+	.pr-monitor {
+		left: calc(var(--u) * 196);
+		right: 0;
+	}
+	.pr-frame {
+		position: absolute;
+		left: 50%;
+		top: calc(var(--u) * 22);
+		translate: -50% 0;
+		height: calc(var(--u) * 118);
+		aspect-ratio: 16 / 9;
+		background: var(--img) center / cover, #000;
+		border: 1px solid rgb(255 255 255 / 0.1);
+	}
+	.pr-tc {
+		position: absolute;
+		left: calc(var(--u) * 10);
+		bottom: calc(var(--u) * 10);
+		color: #e8c33c;
+		font-size: calc(var(--u) * 8);
+	}
+	.pr-ctrl {
+		position: absolute;
+		left: 50%;
+		bottom: calc(var(--u) * 8);
+		translate: -50% 0;
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 9);
+	}
+	.pr-ctrl i {
+		width: calc(var(--u) * 8);
+		height: calc(var(--u) * 8);
+		border-radius: calc(var(--u) * 2);
+		background: rgb(255 255 255 / 0.25);
+	}
+	.pr-ctrl i.play {
+		width: 0;
+		height: 0;
+		border-radius: 0;
+		background: none;
+		border-left: calc(var(--u) * 9) solid #fff;
+		border-top: calc(var(--u) * 5.5) solid transparent;
+		border-bottom: calc(var(--u) * 5.5) solid transparent;
+	}
+	.pr-tl {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: calc(var(--u) * 176);
+		bottom: 0;
+		--ph: #3fb8ff;
+		--from: 70;
+		--to: 600;
+		--dur: 16s;
+	}
+	.pr-ruler {
+		position: relative;
+		height: calc(var(--u) * 16);
+		margin-left: calc(var(--u) * 34);
+		background:
+			repeating-linear-gradient(90deg, rgb(255 255 255 / 0.35) 0 1px, transparent 1px calc(var(--u) * 180)) bottom / 100% calc(var(--u) * 6) no-repeat,
+			repeating-linear-gradient(90deg, rgb(255 255 255 / 0.15) 0 1px, transparent 1px calc(var(--u) * 36)) bottom / 100% calc(var(--u) * 3) no-repeat;
+	}
+	.pr-ruler .t {
+		position: absolute;
+		top: calc(var(--u) * 2);
+		left: calc(var(--u) * var(--x));
+		translate: -50% 0;
+		font-size: calc(var(--u) * 6.5);
+	}
+	.pr-work {
+		height: calc(var(--u) * 3);
+		margin: calc(var(--u) * 2) 0 calc(var(--u) * 4) calc(var(--u) * 34);
+		border-radius: calc(var(--u) * 2);
+		background: linear-gradient(90deg, #2bd46a, #5df08f 60%, #2bd46a);
+		box-shadow: 0 0 calc(var(--u) * 6) rgb(61 220 120 / 0.6);
+	}
+	.trk {
+		display: flex;
+		height: calc(var(--u) * 20);
+		margin-bottom: calc(var(--u) * 3);
+	}
+	.trk.tall {
+		height: calc(var(--u) * 34);
+	}
+	.trk > b {
+		flex: 0 0 calc(var(--u) * 30);
+		display: grid;
+		place-items: center;
+		margin-right: calc(var(--u) * 4);
+		border-radius: 0 calc(var(--u) * 4) calc(var(--u) * 4) 0;
+		background: rgb(255 255 255 / 0.05);
+		font-weight: 600;
+	}
+	.lane {
+		position: relative;
+		flex: 1;
+		background: rgb(255 255 255 / 0.02);
+	}
+	.clip {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: calc(var(--u) * var(--x));
+		width: calc(var(--u) * var(--w));
+		border-radius: calc(var(--u) * 3);
+		overflow: hidden;
+	}
+	.clip em {
+		position: absolute;
+		top: calc(var(--u) * 3);
+		left: calc(var(--u) * 5);
+		font-style: normal;
+		font-size: calc(var(--u) * 6.5);
+		font-weight: 600;
+		color: rgb(255 255 255 / 0.92);
+	}
+	.clip em::before {
+		content: '';
+		display: inline-block;
+		width: calc(var(--u) * 5);
+		height: calc(var(--u) * 5);
+		margin-right: calc(var(--u) * 3);
+		border-radius: 1px;
+		background: #2bd46a;
+	}
+	.clip.v {
+		background: linear-gradient(180deg, #9b6bff, #6f45e8);
+		border: 1px solid rgb(200 175 255 / 0.55);
+	}
+	.clip.fx {
+		background: linear-gradient(180deg, #5a7dff, #3a56d8);
+		border: 1px solid rgb(160 185 255 / 0.5);
+	}
+	.clip.th {
+		border: 1px solid rgb(140 190 255 / 0.55);
+		background:
+			linear-gradient(180deg, rgb(30 60 160 / 0.1), rgb(10 20 70 / 0.35)),
+			var(--img) left center / auto 100% repeat-x,
+			#1a2f7a;
+	}
+	.clip.a {
+		background: linear-gradient(180deg, rgb(32 120 90 / 0.55), rgb(20 80 70 / 0.55));
+		border: 1px solid rgb(90 230 160 / 0.4);
+	}
+	.clip.a2 {
+		background: linear-gradient(180deg, rgb(40 90 190 / 0.5), rgb(25 55 140 / 0.5));
+		border-color: rgb(120 170 255 / 0.4);
+	}
+	.clip svg {
+		position: absolute;
+		inset: calc(var(--u) * 2) 0;
+		width: 100%;
+		height: calc(100% - var(--u) * 4);
+		stroke: rgb(120 255 190 / 0.85);
+		stroke-width: 1;
+	}
+	.clip.a2 svg {
+		stroke: rgb(140 200 255 / 0.85);
+	}
+
+	/* ---------- After Effects ---------- */
+	.ae-view {
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: calc(var(--u) * 196);
+		background: rgb(0 0 0 / 0.22);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.ae-comp {
+		position: absolute;
+		left: 50%;
+		top: calc(var(--u) * 22);
+		translate: -50% 0;
+		width: calc(var(--u) * 300);
+		height: calc(var(--u) * 168);
+		background: radial-gradient(ellipse at 50% 120%, #1e3cc8 0%, #0a1648 55%, #050b2a 100%);
+		border: 1px solid rgb(255 255 255 / 0.12);
+		overflow: hidden;
+		--dur: 5s;
+	}
+	.ae-safe {
+		position: absolute;
+		inset: 8% 6%;
+		border: 1px dashed rgb(255 255 255 / 0.12);
+	}
+	/* Dotted motion path: the top half of an ellipse from (53,133) up to (163,53) and down to (273,133). */
+	.ae-path {
+		position: absolute;
+		left: calc(var(--u) * 53);
+		top: calc(var(--u) * 53);
+		width: calc(var(--u) * 220);
+		height: calc(var(--u) * 160);
+		border: calc(var(--u) * 1.2) dashed color-mix(in srgb, var(--accent) 70%, transparent);
+		border-radius: 50%;
+		clip-path: inset(0 0 50% 0);
+	}
+	.ae-key {
+		position: absolute;
+		left: calc(var(--u) * var(--x));
+		top: calc(var(--u) * var(--y));
+		width: calc(var(--u) * 6);
+		height: calc(var(--u) * 6);
+		translate: -50% -50%;
+		rotate: 45deg;
+		background: #fff;
+		box-shadow: 0 0 calc(var(--u) * 4) var(--accent);
+	}
+	/* The shape travels the path: X moves linearly, Y eases up then down — together they trace the arc. */
+	.ae-mx {
+		position: absolute;
+		left: calc(var(--u) * 40);
+		top: calc(var(--u) * 120);
+		animation: ae-x var(--dur) linear infinite;
+	}
+	.ae-my {
+		animation: ae-y var(--dur) infinite;
+	}
+	.ae-dot {
+		width: calc(var(--u) * 26);
+		height: calc(var(--u) * 26);
+		border-radius: 50%;
+		background: radial-gradient(circle at 35% 35%, #fff, var(--accent) 45%, #1e4dff);
+		box-shadow: 0 0 calc(var(--u) * 16) var(--accent);
+	}
+	@keyframes ae-x {
+		from {
+			translate: 0 0;
+		}
+		to {
+			translate: calc(var(--u) * 220) 0;
+		}
+	}
+	@keyframes ae-y {
+		0% {
+			translate: 0 0;
+			animation-timing-function: cubic-bezier(0.3, 0.6, 0.6, 1);
+		}
+		50% {
+			translate: 0 calc(var(--u) * -80);
+			animation-timing-function: cubic-bezier(0.4, 0, 0.7, 0.4);
+		}
+		100% {
+			translate: 0 0;
+		}
+	}
+	.ae-word {
+		position: absolute;
+		bottom: calc(var(--u) * 12);
+		inset-inline: 0;
+		text-align: center;
+		font-family: var(--font-title);
+		font-weight: 800;
+		font-size: calc(var(--u) * 16);
+		color: #fff;
+		animation: ae-word var(--dur) var(--ease-soft) infinite;
+	}
+	@keyframes ae-word {
+		0%,
+		15% {
+			opacity: 0;
+			letter-spacing: 0.6em;
+		}
+		45%,
+		85% {
+			opacity: 1;
+			letter-spacing: 0.15em;
+		}
+		100% {
+			opacity: 0;
+			letter-spacing: 0.15em;
+		}
+	}
+	.ae-tl {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: calc(var(--u) * 196);
+		bottom: 0;
+		display: flex;
+	}
+	.ae-names {
+		flex: 0 0 calc(var(--u) * 190);
+		border-right: 1px solid rgb(255 255 255 / 0.07);
+		background: rgb(255 255 255 / 0.03);
+	}
+	.ae-hrow,
+	.ae-row {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 7);
+		height: calc(var(--u) * 24);
+		padding-inline: calc(var(--u) * 8);
+		border-bottom: 1px solid rgb(255 255 255 / 0.04);
+	}
+	.ae-hrow {
+		height: calc(var(--u) * 18);
+	}
+	.ae-row > span:first-child {
+		width: calc(var(--u) * 8);
+	}
+	.ae-row i {
+		width: calc(var(--u) * 8);
+		height: calc(var(--u) * 8);
+		border-radius: calc(var(--u) * 2);
+		background: var(--c);
+	}
+	.ae-row i.none {
+		background: none;
+	}
+	.ae-row.prop {
+		padding-left: calc(var(--u) * 26);
+		color: var(--accent);
+	}
+	.ae-row.prop span {
+		color: color-mix(in srgb, var(--accent) 80%, #fff);
+	}
+	.ae-lanes {
+		position: relative;
+		flex: 1;
+		--ph: #4f7cff;
+		--from: 20;
+		--to: 420;
+		--dur: 5s;
+	}
+	.ae-ruler {
+		position: relative;
+		height: calc(var(--u) * 18);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.ae-ruler span {
+		position: absolute;
+		top: calc(var(--u) * 5);
+		left: calc(var(--u) * (20 + var(--x)));
+		translate: -50% 0;
+		font-size: calc(var(--u) * 6.5);
+	}
+	.ae-lane {
+		position: relative;
+		height: calc(var(--u) * 24);
+		border-bottom: 1px solid rgb(255 255 255 / 0.04);
+	}
+	.ae-lane .bar {
+		position: absolute;
+		top: calc(var(--u) * 6);
+		bottom: calc(var(--u) * 6);
+		left: calc(var(--u) * (20 + var(--x)));
+		width: calc(var(--u) * var(--w));
+		right: auto;
+		height: auto;
+		padding: 0;
+		border-radius: calc(var(--u) * 2);
+		background: color-mix(in srgb, var(--c) 45%, transparent);
+		border: 1px solid color-mix(in srgb, var(--c) 70%, transparent);
+	}
+	.kf {
+		position: absolute;
+		top: 50%;
+		left: calc(var(--u) * (20 + var(--x)));
+		width: calc(var(--u) * 7);
+		height: calc(var(--u) * 7);
+		translate: -50% -50%;
+		rotate: 45deg;
+		background: rgb(255 255 255 / 0.75);
+		z-index: 1;
+	}
+	.kf.on {
+		background: var(--accent);
+		box-shadow: 0 0 calc(var(--u) * 5) var(--accent);
+	}
+	.ae-graph {
+		position: absolute;
+		left: calc(var(--u) * 20);
+		width: calc(var(--u) * 400);
+		top: calc(var(--u) * 2);
+		height: calc(var(--u) * 20);
+		fill: none;
+		stroke: color-mix(in srgb, var(--accent) 70%, transparent);
+		stroke-width: 1;
+	}
+
+	/* ---------- Krita ---------- */
+	.kr-canvas {
+		position: absolute;
+		left: calc(var(--u) * 26);
+		right: calc(var(--u) * 172);
+		top: calc(var(--u) * 16);
+		bottom: 0;
+		background: rgb(0 0 0 / 0.25);
+	}
+	.kr-paper {
+		position: absolute;
+		inset: calc(var(--u) * 14);
+		overflow: hidden;
+		border-radius: calc(var(--u) * 2);
+		background: #d9d5cc;
+		box-shadow: 0 calc(var(--u) * 8) calc(var(--u) * 24) rgb(0 0 0 / 0.45);
+	}
+	.kr-wash {
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(circle at 30% 70%, rgb(30 77 255 / 0.35), transparent 35%),
+			radial-gradient(circle at 70% 35%, rgb(255 95 162 / 0.35), transparent 32%),
+			radial-gradient(circle at 55% 60%, rgb(63 184 255 / 0.3), transparent 30%);
+		filter: blur(calc(var(--u) * 2));
+	}
+	.kr-art {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		fill: none;
+		stroke-linecap: round;
+	}
+	.kr-art .ink {
+		stroke: #0a1a4a;
+		stroke-width: 7;
+		opacity: 0.85;
+	}
+	.kr-art .ink.thin {
+		stroke-width: 3;
+	}
+	.kr-art .ink.pink {
+		stroke: #ff5fa2;
+		stroke-width: 9;
+		opacity: 0.8;
+	}
+	/* The live brush stroke draws itself in, holds, then fades and repeats. */
+	.kr-art .stroke {
+		stroke: #1e4dff;
+		stroke-width: 12;
+		stroke-dasharray: 520;
+		stroke-dashoffset: 520;
+		animation: kr-draw 5s var(--ease-soft) infinite;
+	}
+	@keyframes kr-draw {
+		0% {
+			stroke-dashoffset: 520;
+			opacity: 1;
+		}
+		55%,
+		85% {
+			stroke-dashoffset: 0;
+			opacity: 1;
+		}
+		100% {
+			stroke-dashoffset: 0;
+			opacity: 0;
+		}
+	}
+	.kr-dock {
+		top: calc(var(--u) * 16);
+		bottom: 0;
+	}
+	.kr-wheel {
+		position: relative;
+		width: calc(var(--u) * 100);
+		height: calc(var(--u) * 100);
+		margin: calc(var(--u) * 10) auto;
+	}
+	.kr-ring {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+		-webkit-mask: radial-gradient(closest-side, transparent 72%, #000 74%);
+		mask: radial-gradient(closest-side, transparent 72%, #000 74%);
+	}
+	.kr-square {
+		position: absolute;
+		inset: 27%;
+		background:
+			linear-gradient(to top, #000, transparent),
+			linear-gradient(to right, #fff, #ff2f8a);
+	}
+	.kr-pick {
+		position: absolute;
+		left: 62%;
+		top: 38%;
+		width: calc(var(--u) * 8);
+		height: calc(var(--u) * 8);
+		border-radius: 50%;
+		border: calc(var(--u) * 1.5) solid #fff;
+		box-shadow: 0 0 0 1px #000;
+		translate: -50% -50%;
+	}
+	.kr-brushes {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: calc(var(--u) * 6);
+		padding: calc(var(--u) * 8);
+	}
+	.kr-brushes i {
+		aspect-ratio: 1;
+		border-radius: calc(var(--u) * 3);
+		background:
+			radial-gradient(circle, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0.9) var(--h), transparent calc(var(--h) + 30%)),
+			rgb(255 255 255 / 0.06);
+		background-size: 70% 70%, 100% 100%;
+		background-position: center;
+		background-repeat: no-repeat;
+		border: 1px solid rgb(255 255 255 / 0.08);
+	}
+	.kr-brushes i.on {
+		border-color: var(--accent);
+		box-shadow: 0 0 calc(var(--u) * 6) color-mix(in srgb, var(--accent) 60%, transparent);
+	}
+	.kr-slider {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 6);
+		padding: calc(var(--u) * 4) calc(var(--u) * 8);
+	}
+	.kr-slider span:first-child {
+		width: calc(var(--u) * 34);
+	}
+	.kr-slider i {
+		flex: 1;
+		height: calc(var(--u) * 8);
+		border-radius: calc(var(--u) * 2);
+		background:
+			linear-gradient(90deg, color-mix(in srgb, var(--accent) 70%, transparent) var(--v), transparent 0),
+			rgb(255 255 255 / 0.08);
+	}
+
+	/* ---------- Blender ---------- */
+	.bl-head {
+		padding-left: calc(var(--u) * 8);
+		gap: calc(var(--u) * 12);
+	}
+	.bl-mode {
+		padding: calc(var(--u) * 2) calc(var(--u) * 7);
+		border-radius: calc(var(--u) * 3);
+		background: rgb(255 255 255 / 0.1);
+		color: #fff;
+	}
+	.bl-view {
+		position: absolute;
+		left: 0;
+		right: calc(var(--u) * 172);
+		top: calc(var(--u) * 16);
+		bottom: calc(var(--u) * 34);
+		overflow: hidden;
+		background: radial-gradient(ellipse at 50% 40%, #2a3458 0%, #161c36 70%, #10142a 100%);
+		perspective: calc(var(--u) * 520);
+		perspective-origin: 50% 35%;
+	}
+	.bl-label {
+		position: absolute;
+		left: calc(var(--u) * 8);
+		top: calc(var(--u) * 6);
+		line-height: 1.5;
+		z-index: 1;
+	}
+	/* Floor grid laid back in perspective, with the red X and green Y axes. */
+	.bl-floor {
+		position: absolute;
+		left: -60%;
+		right: -60%;
+		top: 52%;
+		height: 140%;
+		transform-origin: 50% 0;
+		transform: rotateX(78deg);
+		background-image:
+			linear-gradient(rgb(255 255 255 / 0.12) 1px, transparent 1px),
+			linear-gradient(90deg, rgb(255 255 255 / 0.12) 1px, transparent 1px);
+		background-size: calc(var(--u) * 28) calc(var(--u) * 28);
+		background-position: center top;
+		-webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 75%);
+		mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 75%);
+	}
+	.bl-floor .ax {
+		position: absolute;
+	}
+	.bl-floor .ax.x {
+		left: 0;
+		right: 0;
+		top: calc(var(--u) * 84);
+		height: calc(var(--u) * 1.5);
+		background: #ff3352;
+	}
+	.bl-floor .ax.y {
+		top: 0;
+		bottom: 0;
+		left: 50%;
+		width: calc(var(--u) * 1.5);
+		background: #8bdc00;
+	}
+	.bl-scene {
+		position: absolute;
+		left: 50%;
+		top: 46%;
+		width: 0;
+		height: 0;
+		transform-style: preserve-3d;
+	}
+	.bl-cube {
+		--s: calc(var(--u) * 84);
+		position: absolute;
+		width: var(--s);
+		height: var(--s);
+		left: calc(var(--s) / -2);
+		top: calc(var(--s) / -2);
+		transform-style: preserve-3d;
+		animation: bl-spin 16s linear infinite;
+	}
+	@keyframes bl-spin {
+		from {
+			transform: rotateX(-24deg) rotateY(0deg);
+		}
+		to {
+			transform: rotateX(-24deg) rotateY(360deg);
+		}
+	}
+	.bl-cube .f {
+		position: absolute;
+		inset: 0;
+		border: calc(var(--u) * 1.4) solid #ff8a1f;
+		box-shadow: inset 0 0 calc(var(--u) * 14) rgb(0 0 0 / 0.25);
+	}
+	.bl-cube .front { transform: translateZ(calc(var(--s) / 2)); background: #aab1c2; }
+	.bl-cube .back { transform: rotateY(180deg) translateZ(calc(var(--s) / 2)); background: #6f7688; }
+	.bl-cube .right { transform: rotateY(90deg) translateZ(calc(var(--s) / 2)); background: #8a91a3; }
+	.bl-cube .left { transform: rotateY(-90deg) translateZ(calc(var(--s) / 2)); background: #8a91a3; }
+	.bl-cube .top { transform: rotateX(90deg) translateZ(calc(var(--s) / 2)); background: #c9cfdc; }
+	.bl-cube .bottom { transform: rotateX(-90deg) translateZ(calc(var(--s) / 2)); background: #5a6070; }
+	.bl-gizmo {
+		position: absolute;
+		right: calc(var(--u) * 14);
+		top: calc(var(--u) * 14);
+		width: calc(var(--u) * 50);
+		height: calc(var(--u) * 50);
+		border-radius: 50%;
+		background: rgb(255 255 255 / 0.05);
+	}
+	.bl-gizmo .g {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: calc(var(--u) * 18);
+		height: calc(var(--u) * 1.5);
+		transform-origin: 0 50%;
+		background: var(--c);
+	}
+	.bl-gizmo .g b {
+		position: absolute;
+		right: calc(var(--u) * -6);
+		top: 50%;
+		translate: 0 -50%;
+		display: grid;
+		place-items: center;
+		width: calc(var(--u) * 11);
+		height: calc(var(--u) * 11);
+		border-radius: 50%;
+		background: var(--c);
+		color: #10142a;
+		font-size: calc(var(--u) * 6.5);
+		font-weight: 700;
+		rotate: var(--r-inv);
+	}
+	.bl-gizmo .x { --c: #ff3352; rotate: 20deg; --r-inv: -20deg; }
+	.bl-gizmo .y { --c: #8bdc00; rotate: -35deg; --r-inv: 35deg; }
+	.bl-gizmo .z { --c: #2890ff; rotate: -90deg; --r-inv: 90deg; }
+	.bl-out {
+		top: calc(var(--u) * 16);
+		height: calc(var(--u) * 116);
+		padding-top: calc(var(--u) * 4);
+		border-bottom: 1px solid rgb(255 255 255 / 0.07);
+	}
+	.bl-orow {
+		display: flex;
+		align-items: center;
+		gap: calc(var(--u) * 5);
+		height: calc(var(--u) * 20);
+		padding-left: calc(var(--u) * (8 + var(--d) * 10));
+	}
+	.bl-orow i {
+		width: calc(var(--u) * 7);
+		height: calc(var(--u) * 7);
+		border-radius: calc(var(--u) * 1.5);
+		background: rgb(255 255 255 / 0.3);
+	}
+	.bl-orow i.cam { background: #6fb7a8; }
+	.bl-orow i.mesh { background: #ff8a1f; }
+	.bl-orow i.light { background: #e8c33c; border-radius: 50%; }
+	.bl-orow.on {
+		background: color-mix(in srgb, var(--accent) 22%, transparent);
+		color: color-mix(in srgb, var(--accent) 60%, #fff);
+	}
+	.bl-props {
+		top: calc(var(--u) * 132);
+		bottom: calc(var(--u) * 34);
+		display: flex;
+	}
+	.bl-tabs {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--u) * 6);
+		padding: calc(var(--u) * 8) calc(var(--u) * 6);
+		border-right: 1px solid rgb(255 255 255 / 0.06);
+	}
+	.bl-tabs i {
+		width: calc(var(--u) * 10);
+		height: calc(var(--u) * 10);
+		border-radius: calc(var(--u) * 2);
+		background: rgb(255 255 255 / 0.14);
+	}
+	.bl-tabs i.on {
+		background: var(--accent);
+	}
+	.bl-fields {
+		flex: 1;
+		padding: calc(var(--u) * 8);
+		display: grid;
+		gap: calc(var(--u) * 5);
+		align-content: start;
+	}
+	.bl-field {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: calc(var(--u) * 6);
+	}
+	.bl-field i {
+		flex: 0 0 55%;
+		padding: calc(var(--u) * 2) calc(var(--u) * 5);
+		border-radius: calc(var(--u) * 3);
+		background: rgb(255 255 255 / 0.08);
+		font-style: normal;
+		text-align: center;
+		color: rgb(255 255 255 / 0.75);
+	}
+	.bl-time {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: calc(var(--u) * 34);
+		background: rgb(255 255 255 / 0.035);
+		border-top: 1px solid rgb(255 255 255 / 0.07);
+		--ph: #4f8cff;
+		--from: 30;
+		--to: 450;
+		--dur: 12s;
+	}
+	.bl-nums {
+		position: relative;
+		height: calc(var(--u) * 14);
+	}
+	.bl-nums span {
+		position: absolute;
+		top: calc(var(--u) * 3);
+		left: calc(var(--u) * (30 + var(--x)));
+		translate: -50% 0;
+		font-size: calc(var(--u) * 6.5);
+	}
+	.bl-keys {
+		position: relative;
+		height: calc(var(--u) * 18);
+	}
+	.bl-keys b {
+		position: absolute;
+		top: 50%;
+		left: calc(var(--u) * (30 + var(--x)));
+		width: calc(var(--u) * 7);
+		height: calc(var(--u) * 7);
+		translate: -50% -50%;
+		rotate: 45deg;
+		background: #e8c33c;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ts-window {
+			transition: box-shadow 0.4s;
+			transform: rotateY(-10deg) rotateX(4deg);
+		}
+		.ts :global(*) {
+			animation: none !important;
+		}
+	}
+</style>
+
+<script>
+	for (const stage of document.querySelectorAll<HTMLElement>('[data-tool-stage]')) {
+		const parts = [...stage.querySelectorAll<HTMLElement>('[data-app]')];
+
+		stage.addEventListener('show', (e) => {
+			const id = (e as CustomEvent<string>).detail;
+			const title = parts.find((p) => p.dataset.app === id && p.dataset.accent);
+			if (!title) return;
+			for (const p of parts) p.classList.toggle('is-active', p.dataset.app === id);
+			stage.style.setProperty('--accent', title.dataset.accent!);
+		});
+
+		// Only animate while the window is on screen.
+		new IntersectionObserver(([entry]) => stage.classList.toggle('is-live', entry.isIntersecting)).observe(stage);
+	}
+</script>

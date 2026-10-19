@@ -1,0 +1,286 @@
+---
+import { asset } from '../lib/asset';
+import { animations2D, featured, heroVideos, more3D, reels, studios, type Project } from '../data/projects';
+
+// Each list's section on the page. With JS a card opens the lightbox; the link is the no-JS fallback.
+const lists: [Project[], string][] = [
+	[featured, '#work'],
+	[animations2D, '#animations'],
+	[studios, '#work'],
+	[more3D, '#work'],
+	[reels, '#work'],
+];
+const find = (slug: string) => {
+	for (const [list, href] of lists) {
+		const project = list.find((p) => p.src === `media/${slug}.mp4`);
+		if (project) return { project, href };
+	}
+	throw new Error(`heroVideos: no project uses media/${slug}.mp4`);
+};
+
+// Per slot: position/size (mobile, then desktop; every card gets the same light 1px blur), resting 3D tilt (cards turn in toward the photo),
+// parallax depth (px of mouse travel — nearer cards move more) and float timing.
+const slots = [
+	{ cls: 'left-[5%] top-[12%] w-[22vw] blur-[1px] sm:left-[1.5%] sm:top-[33%] sm:w-[5.5vw]', tilt: [8, 28], depth: 10, float: ['9s', '0s'] },
+	{ cls: 'hidden sm:block left-[1%] bottom-[9%] w-[17vw] max-w-[280px] blur-[1px]', tilt: [-6, 22], depth: 28, float: ['11s', '-3s'] },
+	{ cls: 'right-[5%] top-[16%] w-[26vw] blur-[1px] sm:right-[1%] sm:top-[47%] sm:w-[10vw]', tilt: [6, -28], depth: 16, float: ['10s', '-6s'] },
+	{ cls: 'hidden sm:block right-[3%] bottom-[7%] w-[13vw] max-w-[220px] blur-[1px]', tilt: [-6, -22], depth: 34, float: ['12s', '-1.5s'] },
+];
+
+const cards = heroVideos.slice(0, slots.length).map((slug, i) => ({ ...find(slug), slot: slots[i] }));
+---
+
+{
+	cards.map(({ project, href, slot }, i) => (
+		<a
+			href={href}
+			class={`hero-video absolute z-[5] aspect-video ${slot.cls}`}
+			style={`--tilt-x:${slot.tilt[0]}deg; --tilt-y:${slot.tilt[1]}deg; --depth:${slot.depth}; --float:${slot.float[0]}; --float-delay:${slot.float[1]}; --in-delay:${300 + i * 140}ms`}
+			aria-label={`Play ${project.title} — ${project.category}. ${project.description}`}
+			data-hero-video
+			data-cursor="play"
+			data-lightbox="video"
+			data-lb-src={asset(project.src!)}
+			data-lb-watch={project.watch}
+			data-lb-vertical={project.vertical ? '' : undefined}
+			data-lb-poster={asset(project.poster)}
+			data-lb-title={project.title}
+			data-lb-category={project.category}
+			data-lb-description={project.description}
+		>
+			<!-- parallax (mouse) → float (3D bob) → tilt (resting angle) → slab (back edge + face) -->
+			<div class="hv-parallax hv-3d size-full">
+				<div class="hv-float hv-3d size-full">
+					<div class="hv-tilt hv-3d relative size-full">
+						<div class="hv-back absolute inset-0 rounded-xl" aria-hidden="true"></div>
+						<div class="hv-face absolute inset-0 overflow-hidden rounded-xl">
+							<video
+								class="size-full object-cover"
+								muted
+								loop
+								playsinline
+								disablepictureinpicture
+								preload="none"
+								poster={asset(project.poster)}
+								aria-hidden="true"
+							>
+								<source src={asset(project.src!)} type="video/mp4" />
+							</video>
+							<div class="hv-glare pointer-events-none absolute inset-0" aria-hidden="true"></div>
+
+							<!-- Info: fixed width (= open width) so the text never reflows while the card grows. -->
+							<div class="hero-video-info pointer-events-none absolute inset-0" aria-hidden="true">
+								<div class="absolute bottom-0 left-0 w-[var(--open-w)] px-3.5 pt-3 pb-3.5">
+									<span class="pill px-2.5 py-1 text-[10px]">{project.category}</span>
+									<p class="mt-2 text-sm leading-tight font-semibold text-white">{project.title}</p>
+									<p class="mt-1 line-clamp-2 text-xs leading-snug text-white/90">{project.description}</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</a>
+	))
+}
+
+<style>
+	.hero-video {
+		--open-w: min(20rem, 86vw);
+		perspective: 900px;
+		outline: none;
+		transition:
+			width 0.5s var(--ease-soft),
+			max-width 0.5s var(--ease-soft),
+			filter 0.5s var(--ease-soft);
+	}
+	.hv-3d {
+		transform-style: preserve-3d;
+	}
+
+	/* Mouse parallax: --mx/--my (-1…1) are set on the hero section by Hero.astro. */
+	.hv-parallax {
+		transform: translate3d(calc(var(--mx, 0) * var(--depth) * 1px), calc(var(--my, 0) * var(--depth) * 1px), 0)
+			rotateY(calc(var(--mx, 0) * 8deg)) rotateX(calc(var(--my, 0) * -8deg));
+		transition: transform 0.6s var(--ease-soft);
+	}
+
+	/* Slow 3D bob: rises, pitches and rolls a little. */
+	.hv-float {
+		animation: card-float-3d var(--float, 10s) ease-in-out var(--float-delay, 0s) infinite;
+	}
+	@keyframes card-float-3d {
+		0%,
+		100% {
+			transform: translate3d(0, 0, 0) rotateX(0deg) rotateZ(0deg);
+		}
+		50% {
+			transform: translate3d(0, -10px, 12px) rotateX(6deg) rotateZ(-1.5deg);
+		}
+	}
+
+	/* Resting angle, turned in toward the centre. */
+	.hv-tilt {
+		transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+		transition: transform 0.6s var(--ease-soft);
+	}
+
+	/* Entrance (after the intro): each card fades in and swings from deep in the scene to its resting angle. */
+	.hero-video {
+		animation: card-fade 0.9s var(--ease-soft) var(--in-delay, 0ms) backwards;
+	}
+	.hv-tilt {
+		animation: card-swing 1.3s var(--ease-soft) var(--in-delay, 0ms) backwards;
+	}
+	@keyframes card-fade {
+		from {
+			opacity: 0;
+		}
+	}
+	@keyframes card-swing {
+		from {
+			transform: rotateX(calc(var(--tilt-x) * 4)) rotateY(calc(var(--tilt-y) * 3)) translateZ(-320px);
+		}
+	}
+
+	/* Thickness: a darker slab behind the face that shows along the edges when tilted. */
+	.hv-back {
+		transform: translateZ(-10px);
+		background: linear-gradient(135deg, #1e4dff, #0a1a4a 60%, #02040f);
+		border: 1px solid rgb(63 184 255 / 0.35);
+		box-shadow: 0 24px 50px -14px rgb(0 0 0 / 0.7);
+	}
+	.hv-face {
+		border: 1px solid rgb(255 255 255 / 0.22);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.25),
+			0 0 30px -10px rgb(63 184 255 / 0.5);
+		background: var(--color-navy);
+	}
+
+	/* Light sweep that slides with the mouse, selling the 3D surface. */
+	.hv-glare {
+		background: linear-gradient(115deg, rgb(255 255 255 / 0.22) 0%, transparent 35%, transparent 65%, rgb(63 184 255 / 0.12) 100%);
+		background-size: 200% 200%;
+		background-position: calc(50% + var(--mx, 0) * 30%) calc(50% + var(--my, 0) * 30%);
+		mix-blend-mode: screen;
+		transition: background-position 0.6s var(--ease-soft);
+	}
+
+	/* Focused card: turns to face you, comes forward, sharp, readable size, stops bobbing. */
+	.hero-video:hover:not([data-lb-returning]),
+	.hero-video:focus-visible,
+	.hero-video.is-open {
+		z-index: 40;
+		width: var(--open-w);
+		max-width: none;
+		filter: none;
+	}
+	.hero-video:hover:not([data-lb-returning]) .hv-tilt,
+	.hero-video:focus-visible .hv-tilt,
+	.hero-video.is-open .hv-tilt {
+		transform: rotateX(0deg) rotateY(0deg) translateZ(40px);
+	}
+	.hero-video:hover:not([data-lb-returning]) .hv-parallax,
+	.hero-video:focus-visible .hv-parallax,
+	.hero-video.is-open .hv-parallax {
+		transform: none;
+	}
+	.hero-video:hover:not([data-lb-returning]) .hv-float,
+	.hero-video:focus-visible .hv-float,
+	.hero-video.is-open .hv-float {
+		animation-play-state: paused;
+	}
+	.hero-video:focus-visible .hv-face {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: 3px;
+	}
+
+	/* Soft fade from the bottom only — the video stays visible; a layered text shadow keeps the copy clear. */
+	.hero-video-info {
+		opacity: 0;
+		background: linear-gradient(to top, rgb(2 4 15 / 0.6) 0%, rgb(2 4 15 / 0.3) 30%, transparent 58%);
+		text-shadow:
+			0 1px 2px rgb(0 0 0 / 0.85),
+			0 0 14px rgb(0 0 0 / 0.55);
+		transition: opacity 0.3s var(--ease-soft);
+	}
+	.hero-video:hover:not([data-lb-returning]) .hero-video-info,
+	.hero-video:focus-visible .hero-video-info,
+	.hero-video.is-open .hero-video-info {
+		opacity: 1;
+		transition-delay: 0.15s; /* appear once the card has mostly grown */
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero-video,
+		.hv-parallax,
+		.hv-tilt {
+			transition: none;
+		}
+		.hv-float,
+		.hero-video,
+		.hv-tilt {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const cards = [...document.querySelectorAll<HTMLAnchorElement>('[data-hero-video]')];
+	const RATE = 2;
+
+	const play = (v: HTMLVideoElement) => {
+		v.defaultPlaybackRate = RATE;
+		v.playbackRate = RATE;
+		v.play().catch(() => {});
+	};
+
+	// Play at 2× only while the hero is on screen (hidden mobile slots never intersect).
+	const io = new IntersectionObserver(
+		(entries) => {
+			for (const { target, isIntersecting } of entries) {
+				const v = target as HTMLVideoElement;
+				if (isIntersecting && !reduceMotion) play(v);
+				else v.pause();
+			}
+		},
+		{ threshold: 0.1 },
+	);
+
+	const close = () => cards.forEach((c) => c.classList.remove('is-open'));
+	let lastPointer = 'mouse';
+
+	for (const card of cards) {
+		const video = card.querySelector('video')!;
+		// Some browsers reset the rate when the source loads.
+		video.addEventListener('loadedmetadata', () => (video.playbackRate = RATE));
+
+		if (reduceMotion) {
+			card.addEventListener('mouseenter', () => play(video));
+			card.addEventListener('focus', () => play(video));
+			card.addEventListener('mouseleave', () => video.pause());
+			card.addEventListener('blur', () => video.pause());
+		}
+
+		// Touch: first tap opens the info, a second tap opens the lightbox (Lightbox.astro).
+		card.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType));
+		card.addEventListener('click', (e) => {
+			if (lastPointer !== 'touch' || card.classList.contains('is-open')) return;
+			e.preventDefault();
+			close();
+			card.classList.add('is-open');
+		});
+	}
+
+	document.addEventListener('click', (e) => {
+		if (!cards.some((c) => c.contains(e.target as Node))) close();
+	});
+	document.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+
+	// Start videos after the page has loaded so they never compete with the hero photo.
+	const start = () => cards.forEach((c) => io.observe(c.querySelector('video')!));
+	if (document.readyState === 'complete') start();
+	else window.addEventListener('load', start, { once: true });
+</script>

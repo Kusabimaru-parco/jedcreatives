@@ -1,0 +1,27 @@
+---
+// Hero backdrop: gradient + grid (also reused as the intro's background). The floating video cards live in HeroVideos.astro.
+---
+
+<div class="hero-bg absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+	<div class="hero-grid absolute inset-0"></div>
+</div>
+
+<style>
+	/* Near-black at the top, electric blue rising from the bottom (matches the reference). */
+	.hero-bg {
+		background:
+			radial-gradient(70% 55% at 50% 108%, rgb(63 120 255 / 0.95), transparent 70%),
+			linear-gradient(180deg, #000 0%, #02040f 30%, #071548 62%, #1638d6 100%);
+	}
+
+	/* Grid that is strongest over the blue and fades out toward the dark top. */
+	.hero-grid {
+		background-image:
+			linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+			linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+		background-size: 64px 64px;
+		background-position: center bottom;
+		-webkit-mask-image: linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
+		mask-image: linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 85%);
+	}
+</style>

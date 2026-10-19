@@ -1,0 +1,632 @@
+---
+import { asset } from '../lib/asset';
+import SplitWords from './SplitWords.astro';
+import ToolStage from './ToolStage.astro';
+import { about, site, tools } from '../data/site';
+import Photoshop from '../assets/tools/photoshop.svg';
+import Premiere from '../assets/tools/premiere.svg';
+import AfterEffects from '../assets/tools/after-effects.svg';
+import Krita from '../assets/tools/krita.svg';
+import Blender from '../assets/tools/blender.svg';
+
+const icons = { photoshop: Photoshop, premiere: Premiere, 'after-effects': AfterEffects, krita: Krita, blender: Blender };
+
+// The orbit auto-cycles through the tools (each tile shows its own countdown ring); clicking picks one.
+const START = 1; // Premiere Pro first
+const CYCLE = '7s';
+
+// FLOATING TOOLS — one line per tool, in the order of `tools` in src/data/site.ts
+// (Photoshop, Premiere Pro, After Effects, Krita, Blender).
+//   pos   → position over the photo column, as Tailwind classes: left-[x%] / right-[x%] and top-[y%].
+//           Bigger top = lower. Bigger left = further right; bigger right = further left. Negative works too: -left-[5%].
+//   tilt  → resting 3D turn in degrees (+ turns toward the right, − toward the left).
+//   depth → how far it follows the mouse, in px.
+//   side  → which side its detail panel opens on ('left' | 'right'); v → panel drops 'down' or rises 'up'.
+//   float → [bob duration, start offset].
+const slots = [
+	{ pos: 'left-[25%] top-[12%]', tilt: 24, depth: 14, side: 'right', v: 'down', float: ['8s', '0s'] },
+	{ pos: 'right-[2%] top-[22%]', tilt: -24, depth: 20, side: 'left', v: 'down', float: ['9s', '-2s'] },
+	{ pos: 'left-15 top-[38%]', tilt: 20, depth: 26, side: 'right', v: 'down', float: ['10s', '-4s'] },
+	{ pos: 'right-0 top-[56%]', tilt: -20, depth: 12, side: 'left', v: 'up', float: ['8.5s', '-1s'] },
+	{ pos: 'left-[30%] top-[72%]', tilt: 18, depth: 22, side: 'right', v: 'up', float: ['9.5s', '-3s'] },
+];
+---
+
+<section id="about" data-scene="about" class="section overflow-hidden" aria-labelledby="about-title">
+	<!-- Background: the page-wide scene "about" (PageBackground.astro). -->
+
+	<div class="about-inner container-x grid items-center gap-12 lg:grid-cols-12 lg:items-start lg:gap-8" data-about-inner data-depth="in out">
+		<div class="lg:col-span-7">
+			<p class="reveal eyebrow mb-5">About me</p>
+			<h2 id="about-title" class="reveal-title section-title mb-8 [--delay:80ms] sm:mb-10"><SplitWords text={"Hi, I'm\nJameel."} /></h2>
+
+			<p class="reveal max-w-2xl text-xl leading-snug font-medium text-white sm:text-2xl [--delay:140ms]">
+				{about.lead}
+			</p>
+			<p class="reveal mt-5 max-w-xl leading-relaxed text-muted [--delay:200ms]">{about.body}</p>
+
+			<dl class="reveal mt-10 flex flex-wrap gap-x-10 gap-y-4 [--delay:260ms]">
+				{
+					about.facts.map((f) => (
+						<div>
+							<dt class="eyebrow mb-1 text-[10px]">{f.label}</dt>
+							<dd class="text-sm font-medium text-white">{f.value}</dd>
+						</div>
+					))
+				}
+			</dl>
+		</div>
+
+		<div class="reveal relative mx-auto mt-24 w-full max-w-sm sm:mt-28 lg:col-span-5 lg:mt-0 lg:max-w-none lg:pt-9 [--delay:150ms]">
+			<!-- App window behind the photo: shows a CSS mock of the selected tool (switched by the orbit below). -->
+			<div class="about-stage" data-thought>
+				<div class="thought-halo" aria-hidden="true"></div>
+				<span class="thought-dot d1" aria-hidden="true"></span>
+				<span class="thought-dot d2" aria-hidden="true"></span>
+				<ToolStage active={tools[START].icon} />
+			</div>
+			<div class="about-glow absolute inset-x-[10%] top-[18%] bottom-[8%] -z-10 rounded-full" aria-hidden="true"></div>
+			<img
+				src={asset('img/cutouts/hero-thinking-lg.webp')}
+				srcset={`${asset('img/cutouts/hero-thinking-sm.webp')} 480w, ${asset('img/cutouts/hero-thinking-lg.webp')} 683w`}
+				sizes="(max-width: 1024px) 300px, 340px"
+				width="683"
+				height="1600"
+				alt={`${site.name} in a thinking pose, looking up`}
+				loading="lazy"
+				decoding="async"
+				class="about-photo mx-auto h-[480px] w-auto sm:h-[600px] lg:translate-x-[8%]"
+			/>
+
+			<!-- Tools orbiting the photo: 3D tiles; hover/click opens a detail panel. -->
+			<!-- No z-index on the list: each tile stacks on its own, so one can sit behind the photo while others are in front. -->
+			<ul class="tool-orbit is-pending absolute inset-0" aria-label="Tools I use" data-tools>
+				{
+					tools.map((t, i) => {
+						const Icon = icons[t.icon];
+						const s = slots[i];
+						return (
+							<li
+								class={`tool absolute ${s.pos}`}
+								data-side={s.side}
+								data-v={s.v}
+								data-tool={t.icon}
+								data-active={i === START ? '' : undefined}
+								style={`--tilt-y:${s.tilt}deg; --depth:${s.depth}; --float:${s.float[0]}; --float-delay:${s.float[1]}; --cycle:${CYCLE}`}
+							>
+								<div class="tool-parallax relative">
+									<button type="button" class="tool-btn block rounded-2xl" aria-expanded="false" aria-controls={`tool-panel-${i}`}>
+										<span class="tool-float tool-3d block">
+											<span class="tool-tile tool-3d relative block size-12 sm:size-14">
+												<span class="tool-back absolute inset-0 rounded-2xl" aria-hidden="true" />
+												<span class="tool-face absolute inset-0 grid place-items-center rounded-2xl">
+													<Icon class="size-8 sm:size-9" aria-hidden="true" />
+													<span class="tool-timer" aria-hidden="true" />
+												</span>
+											</span>
+										</span>
+										<span class="sr-only">{t.name}</span>
+									</button>
+
+									<div id={`tool-panel-${i}`} class="tool-panel absolute w-60 rounded-2xl p-4 sm:w-64" role="region" aria-label={t.name}>
+										<p class="text-sm font-semibold text-white">{t.name}</p>
+										<p class="mt-0.5 text-[11px] font-medium text-cyan">{t.tagline}</p>
+										<p class="mt-3 text-xs leading-relaxed text-white/85">{t.description}</p>
+										<ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Used for">
+											{t.uses.map((u) => (
+												<li class="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] text-white/85">{u}</li>
+											))}
+										</ul>
+									</div>
+								</div>
+							</li>
+						);
+					})
+				}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<style>
+	.about-glow {
+		background: radial-gradient(closest-side, rgb(63 184 255 / 0.45), rgb(30 77 255 / 0.2) 55%, transparent);
+		filter: blur(20px);
+	}
+	.about-photo {
+		-webkit-mask-image: linear-gradient(to bottom, #000 85%, transparent);
+		mask-image: linear-gradient(to bottom, #000 85%, transparent);
+	}
+
+	/* Scroll entrance (driven by the script): content rises from depth as the hero recedes. */
+	.about-inner {
+		transform-origin: 50% 0%;
+		will-change: transform, opacity;
+	}
+
+	/* ---------- "Thought" window: up and to the right of his head ----------
+	   He looks up-right, so the app window floats there like the thing he is thinking about, with two small
+	   thought dots trailing up from his head. Its right edge only extends as far as the page margin allows,
+	   so it is never cut off by the screen edge. Below lg the column gets extra top margin to make room. */
+	.about-stage {
+		position: absolute;
+		z-index: -10;
+		top: -24%;
+		right: -12px;
+		width: 60%;
+		animation: thought-drift 8s ease-in-out infinite;
+	}
+	@media (min-width: 40rem) {
+		.about-stage {
+			top: -22%;
+			right: -14%;
+			width: 60%;
+		}
+	}
+	/* Desktop: in the open space between the title and the photo, up and to the left of his head
+	   (the photo column is top-aligned with the text, so his head sits level with "Hi, I'm Jameel."). */
+	@media (min-width: 64rem) {
+		.about-stage {
+			top: -8%; /* ← move up (more negative) / down */
+			right: auto;
+			left: -40%; /* ← move left (more negative) / right */
+			width: 120%; /* ← window size (height follows automatically) */
+		}
+		.about-stage .thought-dot.d1 {
+			left: auto;
+			right: -62%;
+			top: 96%;
+		}
+		.about-stage .thought-dot.d2 {
+			left: auto;
+			right: -36%;
+			top: 104%;
+		}
+	}
+	@keyframes thought-drift {
+		0%,
+		100% {
+			translate: 0 0;
+		}
+		50% {
+			translate: 0 -6px;
+		}
+	}
+	/* Soft halo of the active tool's colour behind the window, so it reads as a glowing thought. */
+	.thought-halo {
+		position: absolute;
+		inset: -18% -12%;
+		z-index: -1;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, color-mix(in srgb, var(--thought, #3fb8ff) 30%, transparent), transparent);
+		filter: blur(18px);
+		transition: background 0.9s var(--ease-soft);
+	}
+	/* Thought dots: from his head up to the window's lower-left corner, small to large. */
+	.thought-dot {
+		position: absolute;
+		border-radius: 50%;
+		background: rgb(255 255 255 / 0.14);
+		border: 1px solid rgb(255 255 255 / 0.3);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.3),
+			0 0 14px -2px color-mix(in srgb, var(--thought, #3fb8ff) 70%, transparent);
+		-webkit-backdrop-filter: blur(6px);
+		backdrop-filter: blur(6px);
+		animation: thought-pulse 3.2s ease-in-out infinite;
+	}
+	/* In the pocket between his face and the window's left edge, rising toward it. */
+	.thought-dot.d1 {
+		width: 7px;
+		height: 7px;
+		left: -8%;
+		top: 80%;
+	}
+	.thought-dot.d2 {
+		width: 11px;
+		height: 11px;
+		left: -5%;
+		top: 56%;
+		animation-delay: 0.4s;
+	}
+	@keyframes thought-pulse {
+		0%,
+		100% {
+			opacity: 0.55;
+			scale: 0.9;
+		}
+		50% {
+			opacity: 1;
+			scale: 1;
+		}
+	}
+
+	/* ---------- 3D tool tiles ---------- */
+	.tool-btn {
+		perspective: 500px;
+		cursor: var(--cur-pointer);
+	}
+	.tool-3d {
+		transform-style: preserve-3d;
+	}
+
+	/* Mouse parallax: --mx/--my (-1…1) are set on the section by the script below. */
+	.tool-parallax {
+		transform: translate3d(calc(var(--mx, 0) * var(--depth) * 1px), calc(var(--my, 0) * var(--depth) * 1px), 0);
+		transition: transform 0.6s var(--ease-soft);
+	}
+
+	.tool-float {
+		animation: tool-float var(--float, 9s) ease-in-out var(--float-delay, 0s) infinite;
+	}
+	@keyframes tool-float {
+		0%,
+		100% {
+			transform: translate3d(0, 0, 0) rotateX(0deg);
+		}
+		50% {
+			transform: translate3d(0, -8px, 10px) rotateX(12deg);
+		}
+	}
+
+	/* Resting turn toward the photo, nudged by the mouse. */
+	.tool-tile {
+		transform: rotateY(calc(var(--tilt-y) + var(--mx, 0) * 14deg)) rotateX(calc(var(--my, 0) * -14deg));
+		transition: transform 0.5s var(--ease-soft);
+	}
+	/* Thickness: a darker slab behind the face, visible along the edges when turned. */
+	.tool-back {
+		transform: translateZ(-7px);
+		background: linear-gradient(135deg, #1e4dff, #0a1a4a 60%, #02040f);
+		border: 1px solid rgb(63 184 255 / 0.35);
+		box-shadow: 0 16px 30px -10px rgb(0 0 0 / 0.7);
+	}
+	.tool-face {
+		background: rgb(10 26 74 / 0.55);
+		border: 1px solid rgb(255 255 255 / 0.2);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.25),
+			0 0 24px -8px rgb(63 184 255 / 0.5);
+		-webkit-backdrop-filter: blur(10px);
+		backdrop-filter: blur(10px);
+	}
+
+	/* ---------- Entrance (once): the tools come out from behind him ----------
+	   Until About first scrolls into view the tiles are hidden; then each one flies out from behind his
+	   body to its spot (script below). While emerging the whole orbit sits behind the photo. */
+	:global(.js) .tool-orbit.is-pending .tool {
+		opacity: 0;
+	}
+	.tool {
+		z-index: 10;
+	}
+	/* A tile still coming out from behind him. */
+	.tool.is-behind {
+		z-index: -1;
+	}
+
+	/* ---------- Selected tool + its countdown ring ---------- */
+	.tool[data-active] .tool-face {
+		border-color: rgb(63 184 255 / 0.7);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.25),
+			0 0 26px -4px rgb(63 184 255 / 0.85);
+	}
+	/* A ring that fills clockwise around the tile; when it completes, the next tool is selected. */
+	.tool-timer {
+		position: absolute;
+		inset: -5px;
+		border-radius: 1.2rem;
+		padding: 2px;
+		background: conic-gradient(var(--color-cyan) calc(var(--p) * 1%), rgb(255 255 255 / 0.1) 0);
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#000 0 0) content-box exclude,
+			linear-gradient(#000 0 0);
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.3s;
+	}
+	.tool[data-active] .tool-timer {
+		opacity: 1;
+		animation: tool-timer var(--cycle, 7s) linear forwards;
+	}
+	@keyframes tool-timer {
+		from {
+			--p: 0;
+		}
+		to {
+			--p: 100;
+		}
+	}
+	/* Hold the countdown while someone is looking: hovering the tools, a detail panel open, or off-screen. */
+	.tool-orbit:hover .tool-timer,
+	.tool-orbit:has(.tool[data-open]) .tool-timer,
+	.tool-orbit.is-offscreen .tool-timer,
+	.tool-orbit.is-pending .tool-timer,
+	.tool-orbit.is-emerging .tool-timer {
+		animation-play-state: paused;
+	}
+
+	/* ---------- Detail panel ---------- */
+	.tool-panel {
+		z-index: 1;
+		background: rgb(10 26 74 / 0.92);
+		border: 1px solid rgb(255 255 255 / 0.14);
+		box-shadow:
+			0 20px 50px -16px rgb(0 0 0 / 0.75),
+			0 0 30px -10px rgb(63 184 255 / 0.4);
+		-webkit-backdrop-filter: blur(14px);
+		backdrop-filter: blur(14px);
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			opacity 0.3s var(--ease-soft),
+			transform 0.3s var(--ease-soft),
+			visibility 0s linear 0.3s;
+	}
+	.tool[data-side='right'] .tool-panel {
+		left: calc(100% + 0.75rem);
+		transform: translateX(-8px) scale(0.96);
+		transform-origin: left center;
+	}
+	.tool[data-side='left'] .tool-panel {
+		right: calc(100% + 0.75rem);
+		transform: translateX(8px) scale(0.96);
+		transform-origin: right center;
+	}
+	.tool[data-v='down'] .tool-panel {
+		top: -0.25rem;
+	}
+	.tool[data-v='up'] .tool-panel {
+		bottom: -0.25rem;
+	}
+	/* Invisible bridge across the gap so moving the mouse from tile to panel keeps it open. */
+	.tool-panel::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		width: 1rem;
+	}
+	.tool[data-side='right'] .tool-panel::before {
+		right: 100%;
+	}
+	.tool[data-side='left'] .tool-panel::before {
+		left: 100%;
+	}
+
+	/* ---------- Active: hover (mouse only), keyboard focus, or clicked/tapped open ---------- */
+	.tool[data-open],
+	.tool:has(.tool-btn:focus-visible) {
+		z-index: 30;
+	}
+	.tool[data-open] .tool-tile,
+	.tool:has(.tool-btn:focus-visible) .tool-tile {
+		transform: rotateY(0deg) rotateX(0deg) translateZ(24px) scale(1.15);
+	}
+	.tool[data-open] .tool-float,
+	.tool:has(.tool-btn:focus-visible) .tool-float {
+		animation-play-state: paused;
+	}
+	.tool[data-open] .tool-panel,
+	.tool:has(.tool-btn:focus-visible) .tool-panel {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		transition-delay: 0s;
+	}
+	.tool-btn:focus-visible {
+		outline: none;
+	}
+	.tool-btn:focus-visible .tool-face {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: 3px;
+	}
+
+	@media (hover: hover) {
+		.tool:hover {
+			z-index: 30;
+		}
+		.tool:hover .tool-tile {
+			transform: rotateY(0deg) rotateX(0deg) translateZ(24px) scale(1.15);
+		}
+		.tool:hover .tool-float {
+			animation-play-state: paused;
+		}
+		.tool:hover .tool-panel {
+			opacity: 1;
+			visibility: visible;
+			transform: none;
+			transition-delay: 0s;
+		}
+		/* While the mouse is over one tool, only that tool's panel shows. */
+		.tool-orbit:hover .tool:not(:hover) .tool-panel {
+			opacity: 0;
+			visibility: hidden;
+		}
+		.tool-orbit:hover .tool:not(:hover) .tool-tile {
+			transform: rotateY(calc(var(--tilt-y) + var(--mx, 0) * 14deg)) rotateX(calc(var(--my, 0) * -14deg));
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.tool-float {
+			animation: none;
+		}
+		.about-stage,
+		.thought-dot {
+			animation: none;
+		}
+		/* No auto-advance: the selected tool just shows a full ring; clicking still switches. */
+		.tool[data-active] .tool-timer {
+			animation: none;
+			--p: 100;
+		}
+		.tool-parallax,
+		.tool-tile,
+		.tool-panel {
+			transition: opacity 0.2s;
+		}
+	}
+</style>
+
+<script>
+	const section = document.getElementById('about');
+	const orbit = section?.querySelector<HTMLElement>('[data-tools]');
+
+	if (section && orbit) {
+		const items = [...orbit.querySelectorAll<HTMLLIElement>(':scope > .tool')];
+		const setOpen = (li: HTMLLIElement | null) => {
+			for (const item of items) {
+				const open = item === li;
+				item.toggleAttribute('data-open', open);
+				item.querySelector('.tool-btn')?.setAttribute('aria-expanded', String(open));
+			}
+		};
+
+		// Selected tool → highlighted tile + the matching app in the window behind the photo.
+		const stage = section.querySelector<HTMLElement>('[data-tool-stage]');
+		const setActive = (li: HTMLLIElement) => {
+			if (li.hasAttribute('data-active')) return;
+			for (const item of items) item.toggleAttribute('data-active', item === li);
+			stage?.dispatchEvent(new CustomEvent('show', { detail: li.dataset.tool }));
+			if (stage) section.querySelector<HTMLElement>('[data-thought]')?.style.setProperty('--thought', stage.style.getPropertyValue('--accent'));
+		};
+		// Halo and thought dots start in the initial tool's colour.
+		if (stage) section.querySelector<HTMLElement>('[data-thought]')?.style.setProperty('--thought', stage.style.getPropertyValue('--accent'));
+
+		// Auto-cycle: when the selected tile's countdown ring completes, move to the next tool.
+		orbit.addEventListener('animationend', (e) => {
+			if (!(e.target as Element).classList.contains('tool-timer')) return;
+			const i = items.findIndex((item) => item.hasAttribute('data-active'));
+			setActive(items[(i + 1) % items.length]);
+		});
+		// Don't run the countdown while the section is off-screen.
+		new IntersectionObserver(([entry]) => orbit.classList.toggle('is-offscreen', !entry.isIntersecting)).observe(orbit);
+
+		// Entrance, once: the first time About is in view, each tool flies out from his body to its spot
+		// (staggered). A tile whose spot is beside him emerges from BEHIND him and comes to the front once it
+		// has landed (it's clear of him then, so nothing visibly jumps). A tile whose spot overlaps his body
+		// flies out in front the whole way, so it never switches layers mid-view.
+		const photo = section.querySelector<HTMLImageElement>('.about-photo');
+
+		// Does this box overlap the visible (non-transparent) part of the cutout?
+		const overlapsPerson = (() => {
+			let alpha: Uint8ClampedArray | null = null;
+			let w = 0;
+			let h = 0;
+			return (box: DOMRect): boolean => {
+				if (!photo?.complete || !photo.naturalWidth) return true; // unknown → play it safe (stay in front)
+				if (!alpha) {
+					w = 160;
+					h = Math.round((160 * photo.naturalHeight) / photo.naturalWidth);
+					const c = document.createElement('canvas');
+					c.width = w;
+					c.height = h;
+					const ctx = c.getContext('2d', { willReadFrequently: true });
+					if (!ctx) return true;
+					ctx.drawImage(photo, 0, 0, w, h);
+					try {
+						alpha = ctx.getImageData(0, 0, w, h).data;
+					} catch {
+						return true;
+					}
+				}
+				const p = photo.getBoundingClientRect();
+				for (let gy = 0; gy <= 6; gy++) {
+					for (let gx = 0; gx <= 6; gx++) {
+						const x = Math.floor(((box.left + (box.width * gx) / 6 - p.left) / p.width) * w);
+						const y = Math.floor(((box.top + (box.height * gy) / 6 - p.top) / p.height) * h);
+						if (x < 0 || y < 0 || x >= w || y >= h) continue;
+						if (alpha[(y * w + x) * 4 + 3] > 40) return true;
+					}
+				}
+				return false;
+			};
+		})();
+		const emerge = () => {
+			orbit.classList.remove('is-pending');
+			if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !photo) return;
+			const p = photo.getBoundingClientRect();
+			const cx = p.left + p.width * 0.5; // his back / torso
+			const cy = p.top + p.height * 0.42;
+			const DUR = 1200;
+			const STAGGER = 140;
+			orbit.classList.add('is-emerging');
+			items.forEach((li, i) => {
+				const r = li.getBoundingClientRect();
+				const fromBehind = !overlapsPerson(li.querySelector('.tool-face')!.getBoundingClientRect());
+				li.classList.toggle('is-behind', fromBehind);
+				const dx = cx - (r.left + r.width / 2);
+				const dy = cy - (r.top + r.height / 2);
+				const anim = li.animate(
+					[
+						{ transform: `translate(${dx}px, ${dy}px) scale(0.35)`, opacity: 0 },
+						{ opacity: 1, offset: 0.3 },
+						{ transform: `translate(${dx * -0.06}px, ${dy * -0.06}px) scale(1.06)`, offset: 0.72 },
+						{ transform: 'none', opacity: 1 },
+					],
+					{ duration: DUR, delay: 150 + i * STAGGER, easing: 'cubic-bezier(0.2, 0.75, 0.25, 1)', fill: 'backwards' },
+				);
+				const landed = () => li.classList.remove('is-behind');
+				anim.finished.then(landed, landed);
+			});
+			setTimeout(() => orbit.classList.remove('is-emerging'), 150 + (items.length - 1) * STAGGER + DUR);
+		};
+		const once = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				once.disconnect();
+				emerge();
+			},
+			{ threshold: 0.6 }, // most of him is on screen, so the whole entrance is seen
+		);
+		once.observe(photo ?? orbit);
+
+		// Click/tap selects a tool and toggles its panel (one at a time); click outside or Esc closes.
+		for (const li of items) {
+			li.querySelector('.tool-btn')!.addEventListener('click', () => {
+				setActive(li);
+				setOpen(li.hasAttribute('data-open') ? null : li);
+			});
+			li.addEventListener('focusout', (e) => {
+				if (!li.contains(e.relatedTarget as Node)) li.removeAttribute('data-open');
+			});
+		}
+		document.addEventListener('click', (e) => {
+			if (!orbit.contains(e.target as Node)) setOpen(null);
+		});
+		document.addEventListener('keydown', (e) => e.key === 'Escape' && setOpen(null));
+
+		// Scroll entrance/exit in 3D: see [data-depth] in Layout.astro.
+
+		// Mouse parallax (mouse/trackpad only, off for reduced motion).
+		const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (finePointer && !reduceMotion) {
+			let frame = 0;
+			let x = 0;
+			let y = 0;
+			const apply = () => {
+				frame = 0;
+				section.style.setProperty('--mx', x.toFixed(3));
+				section.style.setProperty('--my', y.toFixed(3));
+			};
+			section.addEventListener('pointermove', (e) => {
+				const r = section.getBoundingClientRect();
+				x = ((e.clientX - r.left) / r.width) * 2 - 1;
+				y = ((e.clientY - r.top) / r.height) * 2 - 1;
+				if (!frame) frame = requestAnimationFrame(apply);
+			});
+			section.addEventListener('pointerleave', () => {
+				x = 0;
+				y = 0;
+				if (!frame) frame = requestAnimationFrame(apply);
+			});
+		}
+	}
+</script>

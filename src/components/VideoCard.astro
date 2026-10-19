@@ -1,0 +1,196 @@
+---
+import { asset } from '../lib/asset';
+import type { Project } from '../data/projects';
+
+interface Props {
+	project: Project;
+	/** Fill the parent's height instead of using the media's aspect ratio. */
+	fill?: boolean;
+	/** Hide the description line in the overlay (when it is shown elsewhere). */
+	compact?: boolean;
+	/** Open in the lightbox on an iPhone (for vertical reels). */
+	phone?: boolean;
+	class?: string;
+}
+
+const { project, fill = false, compact = false, phone = false, class: className } = Astro.props;
+const { title, category, description, src, watch, poster, vertical } = project;
+---
+
+<figure
+	class:list={[
+		'video-card group relative overflow-hidden rounded-2xl border border-white/10 bg-navy/40',
+		fill ? 'h-full' : vertical ? 'aspect-[9/16]' : 'aspect-video',
+		className,
+	]}
+	data-video-card
+	data-cursor={src ? 'play' : 'view'}
+>
+	{
+		src ? (
+			<video
+				class="size-full object-cover"
+				muted
+				loop
+				playsinline
+				disablepictureinpicture
+				preload="none"
+				poster={asset(poster)}
+				aria-hidden="true"
+				data-autoplay
+			>
+				<source src={asset(src)} type="video/mp4" />
+			</video>
+		) : (
+			<img src={asset(poster)} alt="" loading="lazy" decoding="async" class="size-full object-cover" />
+		)
+	}
+
+	<!-- Light sweep that follows the mouse (desktop) -->
+	<div class="vc-glare pointer-events-none absolute inset-0" aria-hidden="true"></div>
+
+	<figcaption class="overlay pointer-events-none absolute inset-0 flex flex-col justify-end p-4 sm:p-5">
+		<span class="vc-play glass absolute top-3 right-3 grid size-9 place-items-center rounded-full sm:top-4 sm:right-4" aria-hidden="true">
+			{
+				src ? (
+					<svg viewBox="0 0 16 16" class="ml-0.5 size-3.5" fill="currentColor">
+						<path d="M4.5 2.8v10.4a.6.6 0 0 0 .9.5l8.4-5.2a.6.6 0 0 0 0-1L5.4 2.3a.6.6 0 0 0-.9.5Z" />
+					</svg>
+				) : (
+					<svg viewBox="0 0 16 16" class="size-3.5" fill="none" stroke="currentColor" stroke-width="1.6">
+						<path d="M9.5 2.5h4v4M13.5 2.5 8.5 7.5M6.5 13.5h-4v-4M2.5 13.5l5-5" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				)
+			}
+		</span>
+		<span class="pill self-start px-2.5 py-1 text-[10px]">{category}</span>
+		<h3 class="mt-2 text-sm font-semibold text-white">{title}</h3>
+		{!compact && <p class="mt-0.5 line-clamp-1 text-xs text-white/70">{description}</p>}
+	</figcaption>
+
+	<!-- Whole card opens the viewer (video with sound, or the full image). -->
+	<button
+		type="button"
+		class="vc-open absolute inset-0 z-10 rounded-2xl"
+		aria-label={src ? `Play ${title}` : `View ${title}`}
+		data-lightbox={src ? 'video' : 'image'}
+		data-lb-src={asset(src ?? poster)}
+		data-lb-watch={watch}
+		data-lb-vertical={vertical ? '' : undefined}
+		data-lb-phone={phone ? '' : undefined}
+		data-lb-poster={src ? asset(poster) : undefined}
+		data-lb-alt={src ? undefined : title}
+		data-lb-title={title}
+		data-lb-category={category}
+		data-lb-description={description}
+	></button>
+</figure>
+
+<style>
+	/* 3D tilt toward the mouse: --rx/--ry/--gx/--gy are set by the script below. */
+	.video-card {
+		transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--s, 1));
+		transition: transform 0.6s var(--ease-soft);
+	}
+	.video-card.is-tilting {
+		transition: transform 0.15s linear;
+	}
+	.vc-glare {
+		background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgb(255 255 255 / 0.2), transparent 55%);
+		mix-blend-mode: screen;
+		opacity: 0;
+		transition: opacity 0.3s var(--ease-soft);
+	}
+	.video-card.is-tilting .vc-glare {
+		opacity: 1;
+	}
+
+	.overlay {
+		opacity: 0;
+		background: linear-gradient(to top, rgb(2 4 15 / 0.6) 0%, rgb(2 4 15 / 0.3) 40%, transparent 70%);
+		transition: opacity 300ms var(--ease-soft);
+	}
+	.video-card:hover .overlay,
+	.video-card:focus-within .overlay,
+	.video-card.is-active .overlay {
+		opacity: 1;
+	}
+	.vc-open:focus-visible {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: -2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.video-card {
+			transform: none;
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+	const cards = [...document.querySelectorAll<HTMLElement>('[data-video-card]')];
+	const MAX_TILT = 5; // degrees each way
+
+	// Play only while on screen. With reduced motion, show the poster and play on hover/focus only.
+	const io = new IntersectionObserver(
+		(entries) => {
+			for (const { target, isIntersecting } of entries) {
+				const v = target as HTMLVideoElement;
+				if (isIntersecting && !reduceMotion) v.play().catch(() => {});
+				else v.pause();
+			}
+		},
+		{ threshold: 0.25 },
+	);
+
+	let lastPointer = 'mouse';
+
+	for (const card of cards) {
+		const video = card.querySelector<HTMLVideoElement>('video[data-autoplay]');
+		if (video) io.observe(video);
+
+		if (reduceMotion && video) {
+			const play = () => video.play().catch(() => {});
+			const stop = () => video.pause();
+			card.addEventListener('mouseenter', play);
+			card.addEventListener('focusin', play);
+			card.addEventListener('mouseleave', stop);
+			card.addEventListener('focusout', stop);
+		}
+
+		// 3D tilt + glare (mouse/trackpad only).
+		if (finePointer && !reduceMotion) {
+			card.addEventListener('pointermove', (e) => {
+				const r = card.getBoundingClientRect();
+				const x = (e.clientX - r.left) / r.width; // 0…1
+				const y = (e.clientY - r.top) / r.height;
+				card.classList.add('is-tilting');
+				card.style.setProperty('--ry', `${((x - 0.5) * 2 * MAX_TILT).toFixed(2)}deg`);
+				card.style.setProperty('--rx', `${((0.5 - y) * 2 * MAX_TILT).toFixed(2)}deg`);
+				card.style.setProperty('--gx', `${(x * 100).toFixed(1)}%`);
+				card.style.setProperty('--gy', `${(y * 100).toFixed(1)}%`);
+				card.style.setProperty('--s', '1.015');
+			});
+			card.addEventListener('pointerleave', () => {
+				card.classList.remove('is-tilting');
+				for (const p of ['--rx', '--ry', '--s']) card.style.removeProperty(p);
+			});
+		}
+
+		// Touch has no hover: the first tap shows the info, a second tap opens the viewer.
+		card.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType));
+		card.addEventListener('click', (e) => {
+			if (lastPointer !== 'touch') return;
+			if (card.classList.contains('is-active')) {
+				card.classList.remove('is-active');
+				return; // let the click reach the viewer
+			}
+			e.preventDefault();
+			cards.forEach((c) => c.classList.remove('is-active'));
+			card.classList.add('is-active');
+		});
+	}
+</script>

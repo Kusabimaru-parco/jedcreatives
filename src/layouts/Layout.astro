@@ -1,0 +1,118 @@
+---
+import '../styles/global.css';
+import { asset } from '../lib/asset';
+import Intro from '../components/Intro.astro';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = 'JED CREATIVES — Jameel Belza | 3D Motion, Video & Graphic Design',
+	description = 'Portfolio of Jameel Belza (JED CREATIVES), a Filipino multimedia artist in Vietnam — 3D motion graphics, video editing, graphic design and visual effects.',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta name="theme-color" content="#02040f" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<link rel="icon" type="image/png" href={asset('favicon.png')} />
+		<link rel="apple-touch-icon" href={asset('apple-touch-icon.png')} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Unbounded:wght@600;800&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline>
+			document.documentElement.classList.add('js');
+			// Intro on every load — unless the visitor is jumping to a section (#about, #contact…).
+			if (!location.hash) {
+				document.documentElement.setAttribute('data-intro', '');
+				if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+				window.scrollTo(0, 0);
+			}
+		</script>
+		<meta name="generator" content={Astro.generator} />
+	</head>
+	<body>
+		<a
+			href="#main"
+			class="sr-only rounded-full bg-white px-4 py-2 text-sm font-semibold text-deep focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70]"
+			>Skip to content</a
+		>
+		<Intro />
+		<slot />
+		<div class="grain" aria-hidden="true"></div>
+	</body>
+</html>
+
+<script>
+	// Fade/slide sections in once as they enter the viewport; big titles slide up word by word.
+	const io = new IntersectionObserver(
+		(entries) => {
+			for (const e of entries) {
+				if (!e.isIntersecting) continue;
+				e.target.classList.add('is-visible');
+				io.unobserve(e.target);
+			}
+		},
+		{ threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+	);
+	document.querySelectorAll('.reveal, .reveal-title').forEach((el) => io.observe(el));
+
+	// 3D section transitions. A section's content wrapper with data-depth="in" rises from depth (tilted back,
+	// set back, faded) while the section comes up from below, and settles flat as it reaches the top.
+	// data-depth="out" tilts it back, sinks it and fades it as the next section comes up. Backgrounds stay
+	// still, so colour blends between sections are unaffected. (The hero has its own tuned exit in Hero.astro.)
+	{
+		const els = [...document.querySelectorAll<HTMLElement>('[data-depth]')];
+		if (els.length && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			const items = els.map((el) => ({
+				el,
+				section: el.closest('section') ?? el,
+				enters: el.dataset.depth!.includes('in'),
+				exits: el.dataset.depth!.includes('out'),
+			}));
+			const clamp = (v: number) => Math.min(1, Math.max(0, v));
+			const smooth = (v: number) => v * v * (3 - 2 * v);
+			let frame = 0;
+			const update = () => {
+				frame = 0;
+				const vh = window.innerHeight;
+				for (const { el, section, enters, exits } of items) {
+					const r = section.getBoundingClientRect();
+					const pIn = enters ? clamp(r.top / (vh * 0.85)) : 0;
+					const pOut = exits ? clamp((vh - r.bottom) / (vh * 0.8)) : 0;
+					if (pIn > 0.001) {
+						const e = smooth(pIn);
+						el.style.transformOrigin = '50% 0%';
+						el.style.transform = `perspective(1200px) translate3d(0, ${(e * 70).toFixed(1)}px, ${(-e * 220).toFixed(1)}px) rotateX(${(e * 14).toFixed(2)}deg)`;
+						el.style.opacity = (1 - e * 0.9).toFixed(3);
+					} else if (pOut > 0.001) {
+						const e = smooth(pOut);
+						const fade = smooth(clamp(pOut / 0.7)); // gone before it can linger as a ghost
+						el.style.transformOrigin = '50% 100%';
+						el.style.transform = `perspective(1200px) translate3d(0, ${(-e * 50).toFixed(1)}px, ${(-e * 260).toFixed(1)}px) rotateX(${(e * 12).toFixed(2)}deg)`;
+						el.style.opacity = (1 - fade).toFixed(3);
+					} else if (el.style.transform) {
+						el.style.transform = el.style.opacity = el.style.transformOrigin = '';
+					}
+				}
+			};
+			const schedule = () => frame || (frame = requestAnimationFrame(update));
+			addEventListener('scroll', schedule, { passive: true });
+			addEventListener('resize', schedule);
+			update();
+		}
+	}
+</script>

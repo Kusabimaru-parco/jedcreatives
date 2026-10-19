@@ -1,0 +1,28 @@
+---
+// Wraps each word in a clipping mask so it can slide up from behind an invisible edge
+// (see .reveal-title in global.css). A "\n" in `text` becomes a line break.
+interface Props {
+	text: string;
+}
+
+const lines = Astro.props.text.split('\n').map((line) => line.split(' ').filter(Boolean));
+let index = 0;
+const words = lines.map((line) => line.map((word) => ({ word, i: index++ })));
+---
+
+{
+	words.map((line, li) => (
+		<>
+			{li > 0 && <br />}
+			{line.map(({ word, i }) => (
+				<>
+					<span class="sw">
+						<span class="sw-in" style={`--wi:${i}`}>
+							{word}
+						</span>
+					</span>{' '}
+				</>
+			))}
+		</>
+	))
+}

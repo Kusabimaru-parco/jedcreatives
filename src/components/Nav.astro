@@ -1,0 +1,145 @@
+---
+import { asset } from '../lib/asset';
+
+const links = [
+	{ href: '#about', label: 'About' },
+	{ href: '#services', label: 'Services' },
+	{ href: '#work', label: 'Work' },
+];
+---
+
+<header class="site-nav fixed inset-x-0 top-0 z-50 pt-4">
+	<nav class="container-x flex items-center justify-between" aria-label="Primary">
+		<a href="#top" class="glass grid size-11 place-items-center rounded-full" aria-label="JED Creatives — back to top">
+			<img src={asset('img/logo-white.png')} alt="" width="17" height="19" class="h-[19px] w-auto" />
+		</a>
+		<div class="flex items-center gap-2">
+		<ul class="glass relative flex items-center gap-1 rounded-full p-1 text-sm" data-spy>
+			<!-- Slides behind the link for the section in view -->
+			<li class="nav-pill pointer-events-none absolute top-1 bottom-1 left-0 rounded-full" aria-hidden="true" data-spy-pill></li>
+			{
+				links.map((l) => (
+					<li class="relative">
+						<a
+							href={l.href}
+							class="nav-link block rounded-full px-2.5 py-2 text-[13px] font-medium sm:px-4 sm:text-sm text-white/75 transition duration-300 hover:text-white"
+							data-spy-link
+						>
+							{l.label}
+						</a>
+					</li>
+				))
+			}
+		</ul>
+		<!-- Main call to action: always in view, goes to the contact form. -->
+		<a href="#contact" class="btn btn-primary nav-cta h-11 px-3.5 py-0 text-[13px] whitespace-nowrap sm:px-5 sm:text-sm" data-spy-cta>Get a project?</a>
+		</div>
+	</nav>
+</header>
+
+<style>
+	/* Drops in last, after the hero has assembled (held by the intro until it hands off). */
+	.site-nav {
+		animation: nav-in 0.8s var(--ease-soft) 1.1s both;
+	}
+	@keyframes nav-in {
+		from {
+			opacity: 0;
+			translate: 0 -16px;
+		}
+	}
+	.nav-pill {
+		width: var(--pill-w, 0px);
+		translate: var(--pill-x, 0px) 0;
+		opacity: 0;
+		background: rgb(255 255 255 / 0.12);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.15),
+			0 0 18px -4px rgb(63 184 255 / 0.5);
+		transition:
+			translate 0.5s var(--ease-soft),
+			width 0.5s var(--ease-soft),
+			opacity 0.3s var(--ease-soft);
+	}
+	.nav-pill.is-on {
+		opacity: 1;
+	}
+	.nav-cta.is-current {
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.2),
+			0 0 26px -2px rgb(63 184 255 / 0.8);
+	}
+	.nav-link[aria-current] {
+		color: #fff;
+	}
+	@media (hover: hover) {
+		.nav-link:not([aria-current]):hover {
+			background: rgb(255 255 255 / 0.06);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-nav {
+			animation: none;
+		}
+		.nav-pill {
+			transition: opacity 0.2s;
+		}
+	}
+</style>
+
+<script>
+	// Scroll-spy: highlight the nav link of the section being read (About / Work / Contact).
+	// "Work" covers everything from #work down to Contact; nothing is highlighted over the hero.
+	const list = document.querySelector<HTMLElement>('[data-spy]');
+	const pill = list?.querySelector<HTMLElement>('[data-spy-pill]');
+	const links = [...(list?.querySelectorAll<HTMLAnchorElement>('[data-spy-link]') ?? [])];
+	const sections = links
+		.map((a) => ({ a, el: document.querySelector<HTMLElement>(a.hash) }))
+		.filter((s): s is { a: HTMLAnchorElement; el: HTMLElement } => !!s.el);
+
+	const contact = document.getElementById('contact');
+	const cta = document.querySelector<HTMLElement>('[data-spy-cta]');
+
+	if (list && pill && sections.length) {
+		let current: HTMLAnchorElement | null = null;
+		let frame = 0;
+
+		const movePill = () => {
+			if (!current) return pill.classList.remove('is-on');
+			const li = current.parentElement!;
+			pill.style.setProperty('--pill-x', `${li.offsetLeft}px`);
+			pill.style.setProperty('--pill-w', `${li.offsetWidth}px`);
+			pill.classList.add('is-on');
+		};
+
+		const update = () => {
+			frame = 0;
+			const line = window.innerHeight * 0.4; // a section is "current" once its top passes 40% of the screen
+			let active: HTMLAnchorElement | null = null;
+			for (const { a, el } of sections) if (el.getBoundingClientRect().top <= line) active = a;
+			// In the contact section (or at the very bottom) no link is current — the CTA lights up instead.
+			const atContact =
+				(contact && contact.getBoundingClientRect().top <= line) ||
+				window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+			if (atContact) active = null;
+			cta?.classList.toggle('is-current', !!atContact);
+			if (active === current) return;
+			current?.removeAttribute('aria-current');
+			active?.setAttribute('aria-current', 'true');
+			current = active;
+			movePill();
+		};
+
+		const schedule = () => {
+			if (!frame) frame = requestAnimationFrame(update);
+		};
+		addEventListener('scroll', schedule, { passive: true });
+		addEventListener('resize', () => {
+			movePill();
+			schedule();
+		});
+		document.fonts?.ready.then(movePill); // link widths change once Inter loads
+		update();
+	}
+</script>

@@ -1,0 +1,22 @@
+---
+import SectionTitle from './SectionTitle.astro';
+import VideoCard from './VideoCard.astro';
+import { featured } from '../data/projects';
+---
+
+<section id="work" data-scene="work" class="section" aria-labelledby="featured-title">
+	<div class="grid-overlay -z-10"></div>
+
+	<div class="container-x">
+		<SectionTitle id="featured-title" eyebrow="Selected work" title="Featured Productions" />
+		<div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+			{
+				featured.map((p, i) => (
+					<div class="reveal" style={`--delay:${(i % 2) * 100}ms`}>
+						<VideoCard project={p} />
+					</div>
+				))
+			}
+		</div>
+	</div>
+</section>

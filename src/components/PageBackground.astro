@@ -1,0 +1,111 @@
+---
+// One background for the whole page, fixed behind everything. Each section names its scene with
+// data-scene="…"; as the next section scrolls up, its scene fades in over the current one in step with the
+// scroll, so the colour flows from one section into the next — no seams, lines or dark gaps between them.
+// Scenes are drawn at viewport size. Add a scene: a .scene-<name> rule below + data-scene="<name>" on the section.
+import HeroBackground from './HeroBackground.astro';
+
+const scenes = ['hero', 'about', 'services', 'work', 'animations', 'studios', 'more3d', 'contact'];
+---
+
+<div class="page-bg pointer-events-none fixed inset-0 -z-10" aria-hidden="true" data-page-bg>
+	{
+		scenes.map((name, i) => (
+			<div class:list={['scene', `scene-${name}`]} data-scene-layer={name} style={i === 0 ? undefined : 'opacity:0'}>
+				{name === 'hero' && <HeroBackground />}
+				{name !== 'hero' && <div class="scene-grid" />}
+			</div>
+		))
+	}
+</div>
+
+<style>
+	.page-bg {
+		background: var(--color-deep);
+	}
+	.scene {
+		position: absolute;
+		inset: 0;
+		will-change: opacity;
+	}
+
+	/* Hero: the hero's own backdrop (HeroBackground), unchanged, so the intro hands over to an identical picture. */
+
+	/* Every other section uses the reference colours — near-black through navy into bright royal blue, with a
+	   light glow at the bright end and a faint grid fading toward the black — but each one turns the gradient a
+	   different way, so the black sits somewhere different in every section:
+	     --a     gradient direction; the black is on the side it starts from (180deg = black on top)
+	     --glow  where the bright glow sits (the blue end) */
+	.scene:not(.scene-hero) {
+		--ref: #000108 0%, #01031a 14%, #00082c 26%, #010e43 40%, #091b6d 55%, #0d268d 68%, #1136a9 82%, #1949d0 100%;
+		background:
+			radial-gradient(70% 60% at var(--glow), rgb(63 120 255 / 0.55), transparent 70%),
+			linear-gradient(var(--a), var(--ref));
+	}
+	.scene-grid {
+		position: absolute;
+		inset: 0;
+		background-image:
+			linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
+			linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+		background-size: 64px 64px;
+		background-position: center;
+		-webkit-mask-image: linear-gradient(var(--a), transparent 30%, rgb(0 0 0 / 0.5) 65%, #000 100%);
+		mask-image: linear-gradient(var(--a), transparent 30%, rgb(0 0 0 / 0.5) 65%, #000 100%);
+	}
+
+	.scene-about {
+		--a: 150deg; /* black top-left → blue bottom-right */
+		--glow: 90% 105%;
+	}
+	.scene-services {
+		--a: 0deg; /* black bottom → blue top */
+		--glow: 50% -8%;
+	}
+	.scene-work {
+		--a: 270deg; /* black right → blue left */
+		--glow: -8% 55%;
+	}
+	.scene-animations {
+		--a: 210deg; /* black top-right → blue bottom-left */
+		--glow: 5% 105%;
+	}
+	.scene-studios {
+		--a: 90deg; /* black left → blue right */
+		--glow: 108% 50%;
+	}
+	.scene-more3d {
+		--a: 330deg; /* black bottom-right → blue top-left */
+		--glow: 0% -5%;
+	}
+	.scene-contact {
+		--a: 180deg; /* black top → blue bottom, like the reference */
+		--glow: 50% 108%;
+	}
+</style>
+
+<script>
+	// Each scene fades in while its section's top travels from the bottom of the screen to 30% from the top.
+	// Scenes are stacked in page order, so the incoming one always lies fully over the outgoing one —
+	// the colour changes directly from one section to the next, never through a dark gap.
+	const root = document.querySelector<HTMLElement>('[data-page-bg]');
+	if (root) {
+		const pairs = [...document.querySelectorAll<HTMLElement>('[data-scene]')]
+			.map((section) => ({ section, layer: root.querySelector<HTMLElement>(`[data-scene-layer="${section.dataset.scene}"]`) }))
+			.filter((p): p is { section: HTMLElement; layer: HTMLElement } => !!p.layer);
+		const smooth = (v: number) => v * v * (3 - 2 * v);
+		let frame = 0;
+		const update = () => {
+			frame = 0;
+			const vh = window.innerHeight;
+			pairs.forEach(({ section, layer }, i) => {
+				const p = i === 0 ? 1 : Math.min(1, Math.max(0, (vh - section.getBoundingClientRect().top) / (vh * 0.7)));
+				layer.style.opacity = smooth(p).toFixed(3);
+			});
+		};
+		const schedule = () => frame || (frame = requestAnimationFrame(update));
+		addEventListener('scroll', schedule, { passive: true });
+		addEventListener('resize', schedule);
+		update();
+	}
+</script>

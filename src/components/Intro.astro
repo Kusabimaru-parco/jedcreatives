@@ -1,0 +1,321 @@
+---
+import HeroBackground from './HeroBackground.astro';
+import { asset } from '../lib/asset';
+import { site } from '../data/site';
+
+// The intro sits on the hero's own background, and its wordmark uses the exact same box, classes
+// and position as the hero wordmark — so when the intro fades, the lit word simply *becomes* the hero title.
+const word = 'JEDCREATIVES';
+// Order in which the letters light up (not left-to-right, so it feels like tubes catching).
+const igniteOrder = [3, 0, 7, 1, 10, 5, 2, 8, 4, 11, 6, 9];
+---
+
+<div id="intro" class="intro fixed inset-0 z-[100]" role="presentation">
+	<div class="relative h-[max(100svh,600px)] overflow-hidden" aria-hidden="true">
+		<!-- Same gradient + grid as the hero -->
+		<HeroBackground />
+
+		<!-- Darkness that the opening light lifts -->
+		<div class="intro-veil absolute inset-0"></div>
+		<!-- The opening light: a soft white bloom from the centre -->
+		<div class="intro-light absolute inset-0"></div>
+
+		<!-- Logo: lights up first, then lifts away -->
+		<img
+			src={asset('img/logo-white.png')}
+			alt=""
+			width="114"
+			height="128"
+			class="intro-logo absolute top-1/2 left-1/2 h-16 w-auto sm:h-24"
+		/>
+
+		<div class="absolute inset-x-0 top-[26%] text-center sm:top-[19%]">
+			<p class="intro-eyebrow eyebrow mb-3 text-[10px] tracking-[0.2em] text-white/70 sm:mb-5 sm:text-xs sm:tracking-[0.25em]">
+				{site.name} · {site.role}<span class="hidden sm:inline"> · {site.location}</span>
+			</p>
+			<p class="intro-word font-display text-[17.4vw] leading-[0.82] tracking-[-0.01em] whitespace-nowrap uppercase [font-kerning:none] sm:text-[16.5vw]">
+				{
+					[...word].map((ch, i) => (
+						<span class="intro-letter" style={`--i:${igniteOrder[i]}`}>
+							{ch}
+						</span>
+					))
+				}
+			</p>
+		</div>
+	</div>
+
+	<button type="button" class="intro-skip absolute right-4 bottom-5 rounded-full px-4 py-2 text-xs font-medium text-white/60 sm:right-8 sm:bottom-8" data-intro-skip>
+		Skip intro
+	</button>
+</div>
+
+<style>
+	/* Only exists while <html data-intro> is set (by the inline script in Layout) — no JS, no intro. */
+	.intro {
+		display: none;
+		background: #000;
+	}
+	:global(html[data-intro]) .intro {
+		display: block;
+	}
+	.intro.is-leaving {
+		opacity: 0;
+		pointer-events: none;
+		transition: opacity 0.8s var(--ease-soft);
+	}
+
+	.intro-veil {
+		background: #000;
+	}
+	.intro-light {
+		background: radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.75) 0%, rgb(255 255 255 / 0.22) 18%, transparent 55%);
+		mix-blend-mode: screen;
+		opacity: 0;
+		scale: 0.3;
+	}
+	.intro-logo {
+		translate: -50% -50%;
+		opacity: 0;
+	}
+
+	/* Unlit: a barely-there outline. */
+	.intro-letter {
+		color: rgb(255 255 255 / 0.04);
+		-webkit-text-stroke: 1px rgb(255 255 255 / 0.12);
+	}
+
+	.intro-eyebrow {
+		opacity: 0;
+	}
+	.intro-skip {
+		opacity: 0;
+		border: 1px solid rgb(255 255 255 / 0.15);
+		transition:
+			color 0.3s,
+			border-color 0.3s;
+	}
+	.intro-skip:hover,
+	.intro-skip:focus-visible {
+		color: #fff;
+		border-color: rgb(255 255 255 / 0.4);
+	}
+
+	/* ---------- Timeline (starts once the display font is ready: .is-ready) ---------- */
+	/* 1 · light switches on and lifts the darkness off the hero colours */
+	.intro.is-ready .intro-light {
+		animation: light-on 1.3s var(--ease-soft) 0.1s both;
+	}
+	.intro.is-ready .intro-veil {
+		animation: veil-off 1.2s var(--ease-soft) 0.2s both;
+	}
+	/* 2 · logo flickers on, holds, then lifts away */
+	.intro.is-ready .intro-logo {
+		animation:
+			logo-on 0.8s linear 0.3s both,
+			logo-out 0.6s var(--ease-soft) 1.35s forwards;
+	}
+	/* 3 · letters light up */
+	.intro.is-ready .intro-letter {
+		animation:
+			ignite 0.7s linear calc(1.4s + var(--i) * 60ms) both,
+			settle 0.5s var(--ease-soft) 2.55s forwards; /* glow eases off so the word matches the hero title at handoff */
+	}
+	/* 4 · whole word flares softly, tagline arrives */
+	.intro.is-ready .intro-word {
+		animation: flare 0.9s var(--ease-soft) 2.25s both;
+	}
+	.intro.is-ready .intro-eyebrow {
+		animation: fade-up 0.6s var(--ease-soft) 2.3s both;
+	}
+	.intro.is-ready .intro-skip {
+		animation: fade 0.5s linear 0.6s both;
+	}
+
+	@keyframes light-on {
+		0% {
+			opacity: 0;
+			scale: 0.3;
+		}
+		30% {
+			opacity: 1;
+			scale: 1;
+		}
+		100% {
+			opacity: 0;
+			scale: 1.8;
+		}
+	}
+	@keyframes veil-off {
+		to {
+			opacity: 0;
+		}
+	}
+	@keyframes logo-on {
+		0% {
+			opacity: 0;
+			filter: none;
+		}
+		15% {
+			opacity: 1;
+			filter: drop-shadow(0 0 18px rgb(255 255 255 / 0.9));
+		}
+		25% {
+			opacity: 0.2;
+		}
+		45% {
+			opacity: 1;
+		}
+		55% {
+			opacity: 0.5;
+		}
+		70%,
+		100% {
+			opacity: 1;
+			filter: drop-shadow(0 0 14px rgb(255 255 255 / 0.6));
+		}
+	}
+	@keyframes logo-out {
+		to {
+			opacity: 0;
+			translate: -50% -110%;
+			scale: 0.85;
+			filter: blur(6px);
+		}
+	}
+	/* White flicker, then steady with a soft white glow. */
+	@keyframes ignite {
+		0% {
+			color: rgb(255 255 255 / 0.04);
+			text-shadow: none;
+		}
+		12% {
+			color: #fff;
+			text-shadow: 0 0 18px rgb(255 255 255 / 0.8);
+		}
+		22% {
+			color: rgb(255 255 255 / 0.15);
+			text-shadow: none;
+		}
+		36% {
+			color: #fff;
+			text-shadow: 0 0 18px rgb(255 255 255 / 0.8);
+		}
+		46% {
+			color: rgb(255 255 255 / 0.35);
+			text-shadow: none;
+		}
+		62%,
+		100% {
+			color: #fff;
+			-webkit-text-stroke-color: transparent;
+			text-shadow: 0 0 14px rgb(255 255 255 / 0.45);
+		}
+	}
+	@keyframes settle {
+		to {
+			text-shadow: 0 0 0 rgb(255 255 255 / 0);
+		}
+	}
+	@keyframes flare {
+		0% {
+			filter: none;
+		}
+		35% {
+			filter: drop-shadow(0 0 22px rgb(255 255 255 / 0.6)) brightness(1.1);
+		}
+		100% {
+			filter: none;
+		}
+	}
+	@keyframes fade-up {
+		from {
+			opacity: 0;
+			translate: 0 8px;
+		}
+		to {
+			opacity: 1;
+			translate: 0 0;
+		}
+	}
+	@keyframes fade {
+		to {
+			opacity: 1;
+		}
+	}
+
+	/* Reduced motion: no flash or flicker — darkness lifts, logo and word simply fade in. */
+	@media (prefers-reduced-motion: reduce) {
+		.intro.is-ready .intro-light,
+		.intro.is-ready .intro-word {
+			animation: none;
+		}
+		.intro.is-ready .intro-veil {
+			animation: veil-off 0.6s linear both;
+		}
+		.intro.is-ready .intro-logo {
+			animation:
+				fade 0.4s linear 0.1s both,
+				calm-out 0.3s linear 0.6s forwards;
+		}
+		.intro.is-ready .intro-letter {
+			animation: calm-in 0.5s linear 0.7s both;
+		}
+		.intro.is-ready .intro-eyebrow {
+			animation: fade 0.5s linear 0.8s both;
+		}
+		.intro.is-leaving {
+			transition-duration: 0.4s;
+		}
+		@keyframes calm-in {
+			to {
+				color: #fff;
+				-webkit-text-stroke-color: transparent;
+			}
+		}
+		@keyframes calm-out {
+			to {
+				opacity: 0;
+			}
+		}
+	}
+</style>
+
+<script>
+	const root = document.documentElement;
+	const intro = document.getElementById('intro');
+
+	if (intro && root.hasAttribute('data-intro')) {
+		const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const DURATION = reduceMotion ? 1500 : 3100;
+		let timer = 0;
+		let finished = false;
+
+		const finish = () => {
+			if (finished) return;
+			finished = true;
+			clearTimeout(timer);
+			removeEventListener('keydown', finish);
+			removeEventListener('wheel', finish);
+			removeEventListener('touchmove', finish);
+			// Hand off: the intro fades while the hero's own entrance animations start underneath.
+			intro.classList.add('is-leaving');
+			root.removeAttribute('data-intro');
+			setTimeout(() => intro.remove(), 900);
+		};
+
+		// Any click, key or scroll attempt skips the intro.
+		intro.addEventListener('click', finish);
+		addEventListener('keydown', finish);
+		addEventListener('wheel', finish, { passive: true });
+		addEventListener('touchmove', finish, { passive: true });
+
+		// Start the timeline once the display font is in (max 1.5 s wait), so letters never swap mid-animation.
+		const fontReady = document.fonts?.load('1em Anton').catch(() => {}) ?? Promise.resolve();
+		Promise.race([fontReady, new Promise((r) => setTimeout(r, 1500))]).then(() => {
+			if (finished) return;
+			intro.classList.add('is-ready');
+			timer = window.setTimeout(finish, DURATION);
+		});
+	}
+</script>
