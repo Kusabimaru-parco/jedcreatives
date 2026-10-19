@@ -85,7 +85,7 @@ export const pricing = {
       bestFor: 'Best for clients who prioritize affordability.',
     },
     pro: {
-      name: 'Pro',
+      name: 'Creative',
       title: 'Full Creativity',
       points: [
         'Full creative direction.',
