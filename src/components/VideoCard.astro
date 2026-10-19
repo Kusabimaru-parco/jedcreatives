@@ -95,6 +95,56 @@ const { title, category, description, src, watch, poster, vertical } = project;
 	.video-card.is-tilting {
 		transition: transform 0.15s linear;
 	}
+
+	/* First-scroll entrance (once, with the section reveal): each card glides into its place from a
+	   slightly different position while fading in. The starting point cycles by position in its grid
+	   (left / right / below / above-left), and the wrapper's --delay keeps neighbours arriving in turn. */
+	:global(.js .reveal) .video-card {
+		opacity: 0;
+		translate: var(--from-x, 0) var(--from-y, 50px);
+		rotate: var(--from-r, 0deg);
+		scale: 0.94;
+		transition:
+			transform 0.6s var(--ease-soft),
+			opacity 0.9s ease-out var(--delay, 0ms),
+			translate 1.2s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+			rotate 1.2s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms),
+			scale 1.2s cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+	}
+	:global(.js .reveal.is-visible) .video-card {
+		opacity: 1;
+		translate: 0 0;
+		rotate: 0deg;
+		scale: 1;
+	}
+	:global(.js .reveal:nth-child(4n + 1)) .video-card {
+		--from-x: -70px;
+		--from-y: 24px;
+		--from-r: -2deg;
+	}
+	:global(.js .reveal:nth-child(4n + 2)) .video-card {
+		--from-x: 70px;
+		--from-y: 24px;
+		--from-r: 2deg;
+	}
+	:global(.js .reveal:nth-child(4n + 3)) .video-card {
+		--from-x: 0px;
+		--from-y: 80px;
+		--from-r: 0deg;
+	}
+	:global(.js .reveal:nth-child(4n + 4)) .video-card {
+		--from-x: -40px;
+		--from-y: -50px;
+		--from-r: 1.5deg;
+	}
+	:global(.js .reveal) .video-card.is-tilting {
+		transition:
+			transform 0.15s linear,
+			opacity 0.9s ease-out,
+			translate 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+			rotate 1.2s cubic-bezier(0.16, 1, 0.3, 1),
+			scale 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+	}
 	.vc-glare {
 		background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgb(255 255 255 / 0.2), transparent 55%);
 		mix-blend-mode: screen;
@@ -121,9 +171,13 @@ const { title, category, description, src, watch, poster, vertical } = project;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.video-card {
+		.video-card,
+		:global(.js .reveal) .video-card {
 			transform: none;
-			transition: none;
+			translate: none;
+			rotate: none;
+			scale: none;
+			transition: opacity 0.6s;
 		}
 	}
 </style>
