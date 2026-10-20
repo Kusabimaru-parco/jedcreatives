@@ -15,7 +15,10 @@
   --color-muted: rgb(255 255 255 / 0.6);
 
   --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
-  --font-title: "Unbounded", "Arial Black", sans-serif;
+  /* Hero / intro wordmark: tall condensed League Gothic (client reference). */
+  --font-brand: "League Gothic", "Anton", "Impact", sans-serif;
+  /* Section titles, card/tier titles, etc. — Epic Pro (client's choice), Unbounded as fallback. */
+  --font-title: "Epic Pro", "Unbounded", "Arial Black", sans-serif;
   /* Epic Pro (licensed font, self-hosted: public/fonts/EpicPro.woff2 — see Layout.astro). Falls back to Unbounded. */
   --font-epic: "Epic Pro", "Unbounded", "Arial Black", sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;

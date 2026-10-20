@@ -34,7 +34,7 @@ const {
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Unbounded:wght@600;800&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Anton&family=League+Gothic&family=Inter:wght@400;500;600&family=Unbounded:wght@600;800&display=swap"
 			rel="stylesheet"
 		/>
 		<script is:inline>
@@ -46,9 +46,9 @@ const {
 				window.scrollTo(0, 0);
 			}
 		</script>
-		<!-- Epic Pro: drop the font file at public/fonts/EpicPro.woff2 (or .otf / .ttf) and it is used for the big
-		     Services titles and package prices. Until then the browser falls back to Unbounded. -->
-		<style set:html={`@font-face{font-family:"Epic Pro";src:url("${asset('fonts/EpicPro.woff2')}") format("woff2"),url("${asset('fonts/EpicPro.otf')}") format("opentype"),url("${asset('fonts/EpicPro.ttf')}") format("truetype");font-weight:100 900;font-display:swap;}`}></style>
+		<!-- Epic Pro: the client's title font (public/fonts/EpicPro.ttf), used for all section titles via --font-title. -->
+		<style set:html={`@font-face{font-family:"Epic Pro";src:url("${asset('fonts/EpicPro.ttf')}") format("truetype");font-weight:100 900;font-display:swap;}`}></style>
+		<link rel="preload" href={asset('fonts/EpicPro.ttf')} as="font" type="font/ttf" crossorigin />
 		<meta name="generator" content={Astro.generator} />
 	</head>
 	<body>

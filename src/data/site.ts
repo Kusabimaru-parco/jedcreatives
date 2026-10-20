@@ -68,14 +68,15 @@ export const tools = [
 // Services & pricing (Services section). Prices are in Philippine pesos as on Jameel's pricing slides.
 // `note` adds a second line under the service name.
 export const pricing = {
-  currency: 'PHP',
+  // Peso (₱) and US dollar ($) prices — the toggle above the table switches between them.
   rows: [
-    { service: 'Graphic Design', basic: '₱900', pro: '₱1,400' },
-    { service: 'Video Editing', note: 'Short form', basic: '₱1,700+', pro: '₱3,500+' },
-    { service: 'Video Editing', note: 'Long form', basic: '₱3,000+', pro: '₱4,500+' },
-    { service: 'Motion Graphics', basic: '₱4,000', pro: '₱6,000+' },
-    { service: 'Logo Animation', basic: '₱3,700+', pro: '₱5,000+' },
-    { service: '3D Graphics', basic: '₱6,000+', pro: '₱8,000' },
+    { service: 'Graphic Design', basic: '₱900', pro: '₱1,400', basicUsd: '$15.00', proUsd: '$22.00+' },
+    { service: 'Video Editing', note: 'Short form', basic: '₱1,700+', pro: '₱3,500+', basicUsd: '$28.00+', proUsd: '$55.00+' },
+    { service: 'Video Editing', note: 'Long form', basic: '₱3,000+', pro: '₱4,500+', basicUsd: '$48.00+', proUsd: '$70.00+' },
+    // TODO: confirm with client — on his list Pro ($58) is cheaper than Basic ($68) for Motion Graphics.
+    { service: 'Motion Graphics', basic: '₱4,000', pro: '₱6,000+', basicUsd: '$68.00+', proUsd: '$58.00+' },
+    { service: 'Logo Animation', basic: '₱3,700+', pro: '₱5,000+', basicUsd: '$58.00+', proUsd: '$80.00+' },
+    { service: '3D Graphics', basic: '₱6,000+', pro: '₱8,000', basicUsd: '$95.00+', proUsd: '$127.00+' },
   ],
   tiers: {
     basic: {
@@ -106,6 +107,7 @@ export const packages = [
   {
     name: 'Basic',
     price: '₱12,000',
+    priceUsd: '$190',
     period: '/month',
     features: [
       '8 short-form reels',
@@ -118,6 +120,7 @@ export const packages = [
   {
     name: 'Pro',
     price: '₱22,000',
+    priceUsd: '$348',
     period: '/month',
     features: [
       '12 short-form reels',
@@ -131,6 +134,7 @@ export const packages = [
   {
     name: 'Premium',
     price: '₱35,000',
+    priceUsd: '$554',
     period: '/month',
     features: [
       '16 short-form reels',
