@@ -22,9 +22,9 @@ const find = (slug: string) => {
 // parallax depth (px of mouse travel — nearer cards move more) and float timing.
 const slots = [
 	{ cls: 'left-[5%] top-[12%] w-[22vw] blur-[1px] sm:left-[1.5%] sm:top-[33%] sm:w-[5.5vw]', tilt: [8, 28], depth: 10, float: ['9s', '0s'] },
-	{ cls: 'hidden sm:block left-[1%] bottom-[9%] w-[17vw] max-w-[280px] blur-[1px]', tilt: [-6, 22], depth: 28, float: ['11s', '-3s'] },
+	{ cls: 'hidden sm:block left-[1%] bottom-[9%] w-[17vw] max-w-[17.5rem] blur-[1px]', tilt: [-6, 22], depth: 28, float: ['11s', '-3s'] },
 	{ cls: 'right-[5%] top-[16%] w-[26vw] blur-[1px] sm:right-[1%] sm:top-[47%] sm:w-[10vw]', tilt: [6, -28], depth: 16, float: ['10s', '-6s'] },
-	{ cls: 'hidden sm:block right-[3%] bottom-[7%] w-[13vw] max-w-[220px] blur-[1px]', tilt: [-6, -22], depth: 34, float: ['12s', '-1.5s'] },
+	{ cls: 'hidden sm:block right-[3%] bottom-[7%] w-[13vw] max-w-[13.75rem] blur-[1px]', tilt: [-6, -22], depth: 34, float: ['12s', '-1.5s'] },
 ];
 
 const cards = heroVideos.slice(0, slots.length).map((slug, i) => ({ ...find(slug), slot: slots[i] }));
@@ -71,9 +71,9 @@ const cards = heroVideos.slice(0, slots.length).map((slug, i) => ({ ...find(slug
 							<!-- Info: fixed width (= open width) so the text never reflows while the card grows. -->
 							<div class="hero-video-info pointer-events-none absolute inset-0" aria-hidden="true">
 								<div class="absolute bottom-0 left-0 w-[var(--open-w)] px-3.5 pt-3 pb-3.5">
-									<span class="pill px-2.5 py-1 text-[10px]">{project.category}</span>
+									<span class="pill px-2.5 py-1 text-[0.625rem]">{project.category}</span>
 									<p class="mt-2 text-sm leading-tight font-semibold text-white">{project.title}</p>
-									<p class="mt-1 line-clamp-2 text-xs leading-snug text-white/90">{project.description}</p>
+									<p class="mt-1 text-xs leading-snug text-white/90">{project.description}</p>
 								</div>
 							</div>
 						</div>

@@ -101,10 +101,51 @@ export const pricing = {
 
 const EMAIL = 'jameelbelza@gmail.com';
 
+// Monthly packages (shown under the pricing table in Services).
+export const packages = [
+  {
+    name: 'Basic',
+    price: '₱12,000',
+    period: '/month',
+    features: [
+      '8 short-form reels',
+      '2 static pubmats',
+      'Content calendar and posting schedule',
+      'Caption writing and basic hashtags',
+      'Publishing to 1 social media platform',
+    ],
+  },
+  {
+    name: 'Pro',
+    price: '₱22,000',
+    period: '/month',
+    features: [
+      '12 short-form reels',
+      '4 static pubmats',
+      'Monthly content calendar and content strategy',
+      'Captions, hooks, and calls to action',
+      'Publishing to 2 social media platforms, with adapted formatting',
+      '1 revision round per content piece',
+    ],
+  },
+  {
+    name: 'Premium',
+    price: '₱35,000',
+    period: '/month',
+    features: [
+      '16 short-form reels',
+      '8 static pubmats or carousel posts',
+      'Monthly content strategy and campaign concepts',
+      'Advanced creative direction, hooks, captions, and CTAs',
+      'Publishing to 3 social media platforms, with adapted formatting',
+    ],
+  },
+];
+
 export const contact = {
   email: EMAIL,
-  phone: '+83 795-355-903', // TODO: confirm — Vietnam's country code is +84
-  phoneHref: 'tel:+83795355903', // TODO: update together with `phone`
+  phone: '+83 936 991 794',
+  phoneHref: 'tel:+83936991794', // keep in sync with `phone` (digits only, with the +)
   // Contact form ("Email me"). Delivered by FormSubmit (free, no account) straight to EMAIL.
   // One-time setup: the FIRST message sent from the live site triggers an "Activate form" email to that
   // inbox — click it once and every message after that is delivered. Send one test before launch.

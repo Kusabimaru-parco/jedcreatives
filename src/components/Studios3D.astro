@@ -5,14 +5,12 @@ import { studios } from '../data/projects';
 ---
 
 <section class="section" data-scene="studios" aria-labelledby="studios-title">
-	<div class="grid-overlay -z-10"></div>
 
 	<div class="container-x">
 		<SectionTitle
 			id="studios-title"
-			eyebrow="3D"
-			title="3D Studios"
-			description="Virtual broadcast sets and 3D environments, modeled, lit and rendered in Blender."
+			title="3D Blender graphics"
+			description="My journey into 3D graphics began during intensive training for the TV Broadcasting (TVB) category of DSPC 2024–2025. What started as part of my technical training grew into months of exploration and practice in 3D modeling, animation, and visual design using Blender."
 		/>
 		<ul class="grid gap-10 md:grid-cols-2 md:gap-6">
 			{
@@ -21,7 +19,7 @@ import { studios } from '../data/projects';
 						<VideoCard project={p} compact />
 						<div class="mt-5 flex flex-wrap items-center gap-3">
 							<h3 class="font-title text-base font-semibold tracking-tight uppercase">{p.title}</h3>
-							<span class="pill px-2.5 py-1 text-[10px]">{p.category}</span>
+							<span class="pill px-2.5 py-1 text-[0.625rem]">{p.category}</span>
 						</div>
 						<p class="mt-2.5 text-sm leading-relaxed text-muted">{p.description}</p>
 					</li>

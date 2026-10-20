@@ -49,7 +49,7 @@ const slots = [
 				{
 					about.facts.map((f) => (
 						<div>
-							<dt class="eyebrow mb-1 text-[10px]">{f.label}</dt>
+							<dt class="eyebrow mb-1 text-[0.625rem]">{f.label}</dt>
 							<dd class="text-sm font-medium text-white">{f.value}</dd>
 						</div>
 					))
@@ -67,15 +67,15 @@ const slots = [
 			</div>
 			<div class="about-glow absolute inset-x-[10%] top-[18%] bottom-[8%] -z-10 rounded-full" aria-hidden="true"></div>
 			<img
-				src={asset('img/cutouts/hero-thinking-lg.webp')}
-				srcset={`${asset('img/cutouts/hero-thinking-sm.webp')} 480w, ${asset('img/cutouts/hero-thinking-lg.webp')} 683w`}
-				sizes="(max-width: 1024px) 300px, 340px"
+				src={asset('img/cutouts/about-thinking-lg.webp')}
+				srcset={`${asset('img/cutouts/about-thinking-sm.webp')} 480w, ${asset('img/cutouts/about-thinking-lg.webp')} 683w`}
+				sizes="(max-width: 1024px) 300px, 360px"
 				width="683"
-				height="1600"
+				height="1200"
 				alt={`${site.name} in a thinking pose, looking up`}
 				loading="lazy"
 				decoding="async"
-				class="about-photo mx-auto h-[480px] w-auto sm:h-[600px] lg:translate-x-[8%]"
+				class="about-photo mx-auto h-[30rem] w-auto sm:h-[37.5rem] lg:translate-x-[8%]"
 			/>
 
 			<!-- Tools orbiting the photo: 3D tiles; hover/click opens a detail panel. -->
@@ -110,11 +110,11 @@ const slots = [
 
 									<div id={`tool-panel-${i}`} class="tool-panel absolute w-60 rounded-2xl p-4 sm:w-64" role="region" aria-label={t.name}>
 										<p class="text-sm font-semibold text-white">{t.name}</p>
-										<p class="mt-0.5 text-[11px] font-medium text-cyan">{t.tagline}</p>
+										<p class="mt-0.5 text-[0.6875rem] font-medium text-cyan">{t.tagline}</p>
 										<p class="mt-3 text-xs leading-relaxed text-white/85">{t.description}</p>
 										<ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Used for">
 											{t.uses.map((u) => (
-												<li class="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] text-white/85">{u}</li>
+												<li class="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[0.625rem] text-white/85">{u}</li>
 											))}
 										</ul>
 									</div>
@@ -133,9 +133,10 @@ const slots = [
 		background: radial-gradient(closest-side, rgb(63 184 255 / 0.45), rgb(30 77 255 / 0.2) 55%, transparent);
 		filter: blur(20px);
 	}
+	/* Mid-shot: the hips fade out into the background (no legs). */
 	.about-photo {
-		-webkit-mask-image: linear-gradient(to bottom, #000 85%, transparent);
-		mask-image: linear-gradient(to bottom, #000 85%, transparent);
+		-webkit-mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
+		mask-image: linear-gradient(to bottom, #000 68%, transparent 97%);
 	}
 
 	/* Scroll entrance (driven by the script): content rises from depth as the hero recedes. */
@@ -169,7 +170,7 @@ const slots = [
 		.about-stage {
 			top: -8%; /* ← move up (more negative) / down */
 			right: auto;
-			left: -40%; /* ← move left (more negative) / right */
+			left: -15%; /* ← move left (more negative) / right */
 			width: 120%; /* ← window size (height follows automatically) */
 		}
 		.about-stage .thought-dot.d1 {

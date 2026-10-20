@@ -6,7 +6,8 @@ import { heroTags, site } from '../data/site';
 // Where each floating tag sits around the photo (mobile / desktop).
 const tagPositions = [
 	'left-[4%] top-[47%] sm:left-[15%] sm:top-[56%]',
-	'right-[4%] top-[55%] sm:right-[15%] sm:top-[52%]',
+	// Video Editing: lower, and never higher than just below the wordmark (which grows with screen width).
+	'right-[4%] top-[55%] sm:right-[15%] sm:top-[max(57%,calc(19%+13.5vw+4.5rem))]',
 	'left-[5%] top-[66%] sm:left-[21%] sm:top-[72%]',
 	'right-[6%] top-[73%] sm:right-[22%] sm:top-[69%]',
 ];
@@ -24,7 +25,7 @@ const tagDepths = [18, 22, 26, 14];
 	<!-- Wordmark (behind the photo). Outer = mouse parallax + tilt, inner = slow 3D float. -->
 	<div class="hero-3d pointer-events-none absolute inset-x-0 top-[26%] z-10 text-center sm:top-[19%]" style="--depth:6; --tilt:1.5">
 		<div class="hero-float" style="--float:12s; --float-y:-3px; --float-rx:0.8deg">
-		<p class="eyebrow mb-3 text-[10px] tracking-[0.2em] text-white/70 sm:mb-5 sm:text-xs sm:tracking-[0.25em]">
+		<p class="eyebrow mb-3 text-[0.625rem] tracking-[0.2em] text-white/70 sm:mb-5 sm:text-xs sm:tracking-[0.25em]">
 			{site.name} · {site.role}<span class="hidden sm:inline"> </span>
 		</p>
 		<h1
@@ -40,15 +41,15 @@ const tagDepths = [18, 22, 26, 14];
 	<div class="hero-3d hero-3d-photo pointer-events-none absolute inset-0 z-20" style="--depth:12; --tilt:2">
 		<div class="hero-float absolute inset-0" style="--float:10s; --float-y:-4px; --float-rx:0.5deg; --float-delay:-2s">
 	<img
-		src={asset('img/cutouts/portrait-lg.webp')}
-		srcset={`${asset('img/cutouts/portrait-sm.webp')} 480w, ${asset('img/cutouts/portrait-lg.webp')} 920w`}
-		sizes="(max-width: 640px) 340px, 480px"
-		width="920"
-		height="1398"
-		alt={`${site.name} in a brown leather jacket with headphones around his neck`}
+		src={asset('img/cutouts/hero-camera-lg.webp')}
+		srcset={`${asset('img/cutouts/hero-camera-sm.webp')} 480w, ${asset('img/cutouts/hero-camera-lg.webp')} 702w`}
+		sizes="(max-width: 640px) 380px, 600px"
+		width="702"
+		height="896"
+		alt={`${site.name} in a brown leather jacket, raising a camera to take a photo`}
 		fetchpriority="high"
 		decoding="async"
-		class="hero-photo pointer-events-none absolute bottom-0 left-1/2 h-[62svh] w-auto max-w-none -translate-x-1/2 select-none sm:h-[70svh] sm:max-h-[900px]"
+		class="hero-photo pointer-events-none absolute bottom-0 left-1/2 h-[52svh] w-auto max-w-none -translate-x-1/2 select-none sm:h-[72svh] sm:max-h-[57.5rem]"
 	/>
 		</div>
 	</div>
@@ -59,8 +60,8 @@ const tagDepths = [18, 22, 26, 14];
 			heroTags.map((tag, i) => (
 				<li class={`tag-stage absolute ${tagPositions[i]}`} style={`--tilt-y:${tagTilts[i]}deg; --depth:${tagDepths[i]}; --in-delay:${450 + i * 120}ms`}>
 					<span class="tag-3d inline-block">
-						<span class="pill float hero-in text-[11px] sm:text-xs" style={`--delay:${450 + i * 120}ms; --float-delay:${i * -1.6}s`}>
-							<span class="size-1.5 rounded-full bg-cyan shadow-[0_0_8px_var(--color-cyan)]" aria-hidden="true" />
+						<span class="pill hero-tag float hero-in" style={`--delay:${450 + i * 120}ms; --float-delay:${i * -1.6}s`}>
+							<span class="hero-tag-dot rounded-full bg-cyan shadow-[0_0_8px_var(--color-cyan)]" aria-hidden="true" />
 							{tag}
 						</span>
 					</span>
@@ -73,7 +74,7 @@ const tagDepths = [18, 22, 26, 14];
 	<div class="pointer-events-none relative z-30 mt-auto flex justify-center px-4 pb-6 sm:pb-9">
 		<a href="#about" class="scroll-hint hero-in pointer-events-auto flex flex-col items-center gap-2.5 rounded-full px-3 py-2 [--delay:900ms]">
 			<span class="scroll-mouse" aria-hidden="true"><span></span></span>
-			<span class="text-[10px] font-medium tracking-[0.3em] text-white/75 uppercase">Scroll to About me</span>
+			<span class="text-[0.625rem] font-medium tracking-[0.3em] text-white/75 uppercase">Scroll to About me</span>
 		</a>
 	</div>
 
@@ -84,12 +85,9 @@ const tagDepths = [18, 22, 26, 14];
 
 <style>
 	.hero-photo {
-		/* Fade the bottom and the cropped side edges into the background. */
-		--fade: linear-gradient(to bottom, #000 72%, transparent 100%), linear-gradient(to right, transparent 0, #000 7% 93%, transparent 100%);
-		-webkit-mask-image: var(--fade);
-		-webkit-mask-composite: source-in;
-		mask-image: var(--fade);
-		mask-composite: intersect;
+		/* Fade only the bottom (where the mid-shot is cut) into the background; the sides stay solid. */
+		-webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+		mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
 		animation: photo-in 1.4s var(--ease-soft) 0.15s both;
 	}
 
@@ -220,6 +218,17 @@ const tagDepths = [18, 22, 26, 14];
 		from {
 			transform: translate3d(0, 30px, -180px) rotateY(calc(var(--tilt-y) * 3)) rotateX(40deg);
 		}
+	}
+	/* Skill tags scale with the screen width like the JEDCREATIVES wordmark, so they keep the same proportion
+	   when the page is zoomed in or out. Padding, gap and dot are in em, so the whole pill scales together. */
+	.hero-tag {
+		font-size: max(12px, 1vw);
+		gap: 0.6em;
+		padding: 0.55em 1.15em;
+	}
+	.hero-tag-dot {
+		width: 0.5em;
+		height: 0.5em;
 	}
 	.tag-3d .pill {
 		box-shadow:

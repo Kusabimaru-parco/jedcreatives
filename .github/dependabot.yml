@@ -1,0 +1,15 @@
+# Dependabot opens a pull request when a package or GitHub Action this site uses has an update,
+# including security fixes. Review and merge them; the deploy workflow re-checks everything.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns: ['*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

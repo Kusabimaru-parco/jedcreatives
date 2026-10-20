@@ -16,13 +16,28 @@
 
   --font-display: "Anton", "Impact", "Arial Narrow", sans-serif;
   --font-title: "Unbounded", "Arial Black", sans-serif;
+  /* Epic Pro (licensed font, self-hosted: public/fonts/EpicPro.woff2 — see Layout.astro). Falls back to Unbounded. */
+  --font-epic: "Epic Pro", "Unbounded", "Arial Black", sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 @layer base {
+  /* Desktop: the whole layout scales with the screen width, using a 1366px screen at 80% zoom as the reference —
+     so a 1920px or 2560px monitor shows the same composition, just bigger, instead of a small layout with
+     wide empty margins. Almost every size on the site is in rem (Tailwind spacing, text, container width),
+     and 1rem = 16px at 1707px wide (≈12.8px on a 1366px laptop). Raise 1707 for more space at the sides,
+     lower it for a bigger layout. Below 1024px (tablets, phones) the normal 16px is used. */
+  @media (min-width: 64rem) {
+    html {
+      font-size: max(11px, calc(100vw / 1707 * 16)); /* 1707 = a 1366px screen viewed at 80% zoom */
+    }
+  }
   html {
+    /* Nothing may widen the page sideways (e.g. cards starting off to the side before they glide in) —
+       on phones that would make the whole page zoom out or wobble. */
+    overflow-x: clip;
     scrollbar-gutter: stable; /* no layout shift when the intro unlocks scrolling */
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
@@ -103,10 +118,9 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image:
-      linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px);
-    background-size: 72px 72px;
+    background-image: var(--grid-image);
+    background-size: var(--grid-size) var(--grid-size);
+    background-position: var(--grid-pos);
     -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, #000 30%, transparent 80%);
     mask-image: radial-gradient(ellipse 80% 70% at 50% 45%, #000 30%, transparent 80%);
   }
@@ -157,6 +171,19 @@ html {
 [data-cursor='view'],
 [data-cursor='view'] * {
   cursor: var(--cur-view) !important;
+}
+
+/* Background grid (hero, intro and every section scene): cells with faint lines and a small four-point
+   sparkle at each crossing, all drawn as one vector tile (so lines stay visible when the page is zoomed out).
+   Every grid is anchored at the screen centre (--grid-pos) so they line up exactly during section crossfades.
+     --grid-size        cell size
+   Inside --grid-image:
+     stroke-opacity     line brightness          scale(...)          sparkle size (0.6 now; 1 = full)
+     first fill-opacity sparkle glow             second fill-opacity sparkle brightness */
+:root {
+  --grid-size: 5rem; /* 80px at the 1366px reference; scales with the layout */
+  --grid-pos: center center;
+  --grid-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cpath d='M0 64H128M64 0V128' stroke='%23fff' stroke-opacity='.12' stroke-width='1.6' fill='none'/%3E%3Cg transform='translate(64 64) scale(.60) translate(-64 -64)'%3E%3Ccircle cx='64' cy='64' r='7' fill='%23bcd6ff' fill-opacity='.1'/%3E%3Cpath d='M64 55.5Q65 63 72.5 64Q65 65 64 72.5Q63 65 55.5 64Q63 63 64 55.5Z' fill='%23fff' fill-opacity='.30'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* Intro: lock scrolling and hold every hero/nav animation at its first frame until the intro hands off. */

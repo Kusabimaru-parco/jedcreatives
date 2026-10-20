@@ -19,7 +19,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Security gate: stops the deploy if an installed package has a known high/critical vulnerability.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Check dependencies for known vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+
   build:
+    needs: audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

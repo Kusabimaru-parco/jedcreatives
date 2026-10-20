@@ -45,11 +45,9 @@ const scenes = ['hero', 'about', 'services', 'work', 'animations', 'studios', 'm
 	.scene-grid {
 		position: absolute;
 		inset: 0;
-		background-image:
-			linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
-			linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
-		background-size: 64px 64px;
-		background-position: center;
+		background-image: var(--grid-image);
+		background-size: var(--grid-size) var(--grid-size);
+		background-position: var(--grid-pos);
 		-webkit-mask-image: linear-gradient(var(--a), transparent 30%, rgb(0 0 0 / 0.5) 65%, #000 100%);
 		mask-image: linear-gradient(var(--a), transparent 30%, rgb(0 0 0 / 0.5) 65%, #000 100%);
 	}

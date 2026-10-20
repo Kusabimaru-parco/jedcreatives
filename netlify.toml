@@ -1,0 +1,23 @@
+# Netlify build settings (the site also deploys to GitHub Pages; see .github/workflows/deploy.yml).
+# Netlify sets NETLIFY=true during builds, which makes astro.config.mjs drop the /jedcreatives base path.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+# Security headers for every page (GitHub Pages can't set these; Netlify can).
+# Keep in sync with `securityHeaders` in src/lib/security.ts.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Only load scripts/styles/media from this site and the few services it uses.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://formsubmit.co https://formspree.io; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; form-action 'self' https://formsubmit.co https://formspree.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+    # Don't let other sites put this one in a frame (clickjacking).
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"

@@ -40,25 +40,25 @@ export const featured: Project[] = [
   {
     title: 'Festival Promo', // TODO: real title
     category: 'Video Editing',
-    description: 'High-energy promo cut from live festival footage.', // TODO
+    description: 'A promotional video celebrating the culture and traditions of Atimonan, Quezon. This production received the Outstanding Cultural Display award at the 2025 Municipal Video Editing Contest. Produced in collaboration with FourCards Prod and Raux Art.', // TODO
     ...video('promovid'),
   },
   {
-    title: 'ISDAE Feature', // TODO: real title
+    title: 'ISDAE 2026', // TODO: real title
     category: 'Video Editing',
-    description: 'Campus feature film — students, heritage and community.', // TODO
+    description: 'An international invitation video designed to connect academic institutions across Southeast Asia and promote academic collaboration and research exchange.', // TODO
     ...video('isdae-fv'),
   },
   {
-    title: 'ISDAE Motion Package', // TODO: real title
+    title: 'ISDAE 2026', // TODO: real title
     category: '3D Motion GFX',
-    description: 'Photo-driven motion graphics with animated icon systems.', // TODO
+    description: 'An international invitation video designed to connect academic institutions across Southeast Asia and promote academic collaboration and research exchange.', // TODO
     ...video('isdae-gfx'),
   },
   {
-    title: 'Video Editing Portfolio', // TODO: real title
+    title: 'Jed creative Portfolio', // TODO: real title
     category: '3D Motion GFX',
-    description: 'Turning vision into polished visuals — a showreel opener.', // TODO
+    description: 'Jedcreative’s most featured portfolio–displaying my excellence in video editing and motion graphics. April 2026.', // TODO
     ...video('portfolio-4'),
   },
 ];
@@ -66,21 +66,21 @@ export const featured: Project[] = [
 // 6 · 2D Informative Animations (2025) — flat 2D work only; the `vertical` item becomes the tall card on the right
 export const animations2D: Project[] = [
   {
-    title: 'St. Anne', // TODO: real title
+    title: 'Safety Tips 2D Animation', // TODO: real title
     category: '2D Animation',
-    description: 'Character-driven informative animation.', // TODO
+    description: 'A compilation of informative 2D animation projects focused on communicating safety tips through clear visuals and engaging animation. This collection includes work completed in collaboration with St. Anne College Lucena in August 2025.', // TODO
     ...video('st-anne-2'),
   },
   {
-    title: 'AIRTIP', // TODO: real title
+    title: 'AIR-TIPS - Informative video', // TODO: real title
     category: '2D Animation',
-    description: 'Paper-textured explainer on illegal labor.', // TODO
+    description: 'An informative video featuring a vox-style motion graphics approach, combining visual elements and text to present key information in an engaging and accessible format. This style is well-suited for projects that require clear, concise, and visually appealing communication.', // TODO
     ...video('airtip'),
   },
   {
-    title: 'ISDAE Reel', // TODO: real title
+    title: 'ISDAE 2026', // TODO: real title
     category: '2D Animation',
-    description: 'Vertical motion reel for social.', // TODO
+    description: 'An international invitation video designed to connect academic institutions across Southeast Asia and promote academic collaboration and research exchange.', // TODO
     vertical: true,
     ...video('isdae-reel'),
   },
@@ -112,31 +112,31 @@ export const more3D: Project[] = [
   {
     title: 'GNHS 3D Opener', // TODO: real title
     category: '3D Motion GFX',
-    description: '3D school build that opens into a photo wall.', // TODO
+    description: 'A promotional graphics and video project for SOLGA 2025, an event held in Gumaca, Quezon. The project focused on presenting the event through visual content designed to capture attention and build audience interest.', // TODO
     ...video('3d-gnhs'),
   },
   {
     title: 'GNHS — Part 1', // TODO: real title
     category: '3D Motion GFX',
-    description: 'Live footage blended with 3D title graphics.', // TODO
+    description: 'A promotional graphics and video project for SOLGA 2025, an event held in Gumaca, Quezon. The project focused on presenting the event through visual content designed to capture attention and build audience interest.', // TODO
     ...video('gnhs-1'),
   },
   {
     title: 'GNHS — Part 2', // TODO: real title
     category: '3D Motion GFX',
-    description: '3D map fly-through into the student lineup.', // TODO
+    description: 'A promotional graphics and video project for SOLGA 2025, an event held in Gumaca, Quezon. The project focused on presenting the event through visual content designed to capture attention and build audience interest.', // TODO
     ...video('gnhs-2'),
   },
   {
     title: 'Messages', // TODO: real title
     category: '3D Motion GFX',
-    description: '3D phone mockup and globe animation for a self-promo.', // TODO
+    description: 'Jedcreative’s most featured portfolio–displaying my excellence in video editing and motion graphics. April 2026.', // TODO
     ...video('portfolio-2'),
   },
   {
     title: 'Control Center', // TODO: real title
     category: '3D Motion GFX',
-    description: '3D phone mockup with a UI motion study.', // TODO
+    description: 'Jedcreative’s most featured portfolio–displaying my excellence in video editing and motion graphics. April 2026.', // TODO
     ...video('portfolio-3'),
   },
 ];
@@ -144,23 +144,23 @@ export const more3D: Project[] = [
 // Reels & Visual FX (vertical clips — not in the original section list)
 export const reels: Project[] = [
   {
-    title: 'Personal Showreel', // TODO: real title
+    title: 'Philippine–Vietnam International Affairs Reel', // TODO: real title
     category: 'Visual FX',
-    description: 'Light, glow and hand-tracked VFX.', // TODO
+    description: 'A short-form video showcasing my graphic design and motion graphics skills through a visually engaging, scroll-stopping presentation. The project explores dynamic visuals, pacing, and composition to capture attention while highlighting Philippine–Vietnam international relations.', // TODO
     vertical: true,
     ...video('me-showreel'),
   },
   {
-    title: 'Mang Kulas Showreel', // TODO: real title
+    title: 'Mangkulas Reel', // TODO: real title
     category: 'Visual FX',
-    description: 'Character VFX and compositing.', // TODO
+    description: 'Our combined creative skills for a marvel-themed advertisement, collaborated with Creator Camp, August 2026.', // TODO
     vertical: true,
     ...video('mang-kulas-showreel'),
   },
   {
-    title: 'Mang Kulas — Part 2', // TODO: real title
+    title: 'Mang Kulas Reel - Part 2', // TODO: real title
     category: 'Video Editing',
-    description: 'Short-form edit for social.', // TODO
+    description: 'Our combined creative skills for a marvel-themed advertisement, collaborated with Creator Camp, August 2026.', // TODO
     vertical: true,
     ...video('mang-kulas-2'),
   },

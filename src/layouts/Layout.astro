@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { asset } from '../lib/asset';
+import { contentSecurityPolicy } from '../lib/security';
 import Intro from '../components/Intro.astro';
 
 interface Props {
@@ -18,6 +19,9 @@ const {
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		{/* Security policy (src/lib/security.ts). In built pages only — the dev server needs things it blocks. */}
+		{import.meta.env.PROD && <meta http-equiv="Content-Security-Policy" content={contentSecurityPolicy({ meta: true })} />}
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{title}</title>
 		<meta name="description" content={description} />
@@ -42,6 +46,9 @@ const {
 				window.scrollTo(0, 0);
 			}
 		</script>
+		<!-- Epic Pro: drop the font file at public/fonts/EpicPro.woff2 (or .otf / .ttf) and it is used for the big
+		     Services titles and package prices. Until then the browser falls back to Unbounded. -->
+		<style set:html={`@font-face{font-family:"Epic Pro";src:url("${asset('fonts/EpicPro.woff2')}") format("woff2"),url("${asset('fonts/EpicPro.otf')}") format("opentype"),url("${asset('fonts/EpicPro.ttf')}") format("truetype");font-weight:100 900;font-display:swap;}`}></style>
 		<meta name="generator" content={Astro.generator} />
 	</head>
 	<body>

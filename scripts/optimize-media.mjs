@@ -43,6 +43,24 @@ async function images() {
     for (const [w, size] of [[480, 'sm'], [920, 'lg']]) await webp(`${ASSETS}/images/${name}.webp`, `${cut}/${name}-${size}.webp`, { width: w, quality: 82 });
   }
 
+  // Hero photo: the camera pose as a mid-shot (head to just below the belt, no legs).
+  const HERO_CROP = 0.64; // fraction of the original height to keep, from the top
+  {
+    const src = `${ASSETS}/images/pose-camera.webp`;
+    const { width, height } = await sharp(src).metadata();
+    const crop = await sharp(src).extract({ left: 0, top: 0, width, height: Math.round(height * HERO_CROP) }).toBuffer();
+    for (const [w, size] of [[480, 'sm'], [920, 'lg']]) await webp(crop, `${cut}/hero-camera-${size}.webp`, { width: w, quality: 82 });
+  }
+
+  // About photo: the thinking pose as a mid-shot (head to the hips, which fade out on the page).
+  const ABOUT_CROP = 0.75; // fraction of the original height to keep, from the top
+  {
+    const src = `${ASSETS}/images/hero-thinking.webp`;
+    const { width, height } = await sharp(src).metadata();
+    const crop = await sharp(src).extract({ left: 0, top: 0, width, height: Math.round(height * ABOUT_CROP) }).toBuffer();
+    for (const [w, size] of [[480, 'sm'], [683, 'lg']]) await webp(crop, `${cut}/about-thinking-${size}.webp`, { width: w, quality: 82 });
+  }
+
   // Logo: black mark → white mark on transparent, plus favicons.
   const logoSrc = `${ASSETS}/LOGO/NEW ICON FIXED.png`;
   const { width, height } = await sharp(logoSrc).metadata();

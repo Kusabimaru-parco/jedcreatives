@@ -30,7 +30,6 @@ const items = [
 ---
 
 <section id="contact" data-scene="contact" class="section overflow-hidden" aria-labelledby="contact-title">
-	<div class="grid-overlay -z-10"></div>
 
 	<div class="container-x grid gap-14 lg:grid-cols-2 lg:gap-20">
 		<div>
@@ -55,7 +54,7 @@ const items = [
 									<span class:list={['contact-icon', `is-${item.label.toLowerCase()}`]} aria-hidden="true">
 										<svg viewBox="0 0 24 24" set:html={icons[item.label] ?? ''} />
 									</span>
-									<span class="eyebrow text-[10px]">{item.label}</span>
+									<span class="eyebrow text-[0.625rem]">{item.label}</span>
 								</span>
 								<span class="font-medium text-white transition duration-300 group-hover:text-cyan">{item.value}</span>
 							</a>
@@ -222,9 +221,16 @@ const items = [
 		const status = form.querySelector<HTMLElement>('[data-form-status]')!;
 		const email = form.dataset.email ?? '';
 
-		const show = (state: 'success' | 'error', html: string) => {
+		// Built from text nodes only (never innerHTML), so nothing in a server reply can inject markup.
+		const show = (state: 'success' | 'error', text: string, withEmail = false) => {
 			status.dataset.state = state;
-			status.innerHTML = html;
+			status.replaceChildren(text);
+			if (withEmail) {
+				const link = document.createElement('a');
+				link.href = `mailto:${email}`;
+				link.textContent = email;
+				status.append(' Please email me directly at ', link, '.');
+			}
 			status.classList.remove('hidden');
 		};
 		const busy = (on: boolean) => {
@@ -232,7 +238,6 @@ const items = [
 			spinner.classList.toggle('hidden', !on);
 			label.textContent = on ? 'Sending…' : 'Send Message';
 		};
-		const fallback = `Please email me directly at <a href="mailto:${email}">${email}</a>.`;
 
 		// FormSubmit answers JSON on its /ajax/ endpoint; Formspree does when asked with Accept: application/json.
 		const endpoint = () => {
@@ -258,7 +263,13 @@ const items = [
 				show('success', "Thanks! Your message is on its way — I'll get back to you within a day or two.");
 			} catch (err) {
 				console.warn('Contact form failed:', err);
-				show('error', `Sorry, the message couldn't be sent. ${fallback}`);
+				const reason = err instanceof Error ? err.message : '';
+				// FormSubmit refuses messages until the inbox owner has clicked its one-time activation link.
+				if (/activat/i.test(reason)) {
+					show('error', `This form is waiting to be activated — an activation email has been sent to ${email}.`, true);
+				} else {
+					show('error', `Sorry, the message couldn't be sent${reason && !/^HTTP|fetch/i.test(reason) ? ` (${reason.slice(0, 160)})` : ''}.`, true);
+				}
 			} finally {
 				busy(false);
 			}

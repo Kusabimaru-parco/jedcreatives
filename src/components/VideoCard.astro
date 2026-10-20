@@ -63,9 +63,9 @@ const { title, category, description, src, watch, poster, vertical } = project;
 				)
 			}
 		</span>
-		<span class="pill self-start px-2.5 py-1 text-[10px]">{category}</span>
+		<span class="pill self-start px-2.5 py-1 text-[0.625rem]">{category}</span>
 		<h3 class="mt-2 text-sm font-semibold text-white">{title}</h3>
-		{!compact && <p class="mt-0.5 line-clamp-1 text-xs text-white/70">{description}</p>}
+		{!compact && <p class="mt-0.5 text-xs leading-snug text-white/80">{description}</p>}
 	</figcaption>
 
 	<!-- Whole card opens the viewer (video with sound, or the full image). -->
@@ -136,6 +136,12 @@ const { title, category, description, src, watch, poster, vertical } = project;
 		--from-x: -40px;
 		--from-y: -50px;
 		--from-r: 1.5deg;
+	}
+	/* Phones: shorter sideways glide. */
+	@media (max-width: 39.99rem) {
+		:global(.js .reveal) .video-card {
+			--from-x: 0px !important;
+		}
 	}
 	:global(.js .reveal) .video-card.is-tilting {
 		transition:

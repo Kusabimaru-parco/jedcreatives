@@ -1,19 +1,12 @@
 ---
-// Services & pricing, after Jameel's pricing slides: a giant "PRICING" word, a frosted-glass panel over it
-// with two views (the price table, and Basic vs Pro), and Jameel beside it. Arrows, dots or a swipe switch
-// views with a 3D turn. Content lives in `pricing` in src/data/site.ts.
+// Services & pricing, centred: a "PRICING" title over a frosted-glass panel with two views (the price table,
+// and Basic vs Pro) switched by arrows/dots/swipe with a 3D turn; then "PACKAGES" with the three monthly plans.
+// Content: `pricing` and `packages` in src/data/site.ts. Big titles use the Epic Pro font (see Layout.astro).
 import SplitWords from './SplitWords.astro';
-import { asset } from '../lib/asset';
-import { pricing, site } from '../data/site';
+import { packages, pricing } from '../data/site';
 
 const { rows, tiers } = pricing;
 const views = ['Prices', 'Basic vs Pro'];
-// Poses for the photo: shown by default / while hovering Basic / while hovering Pro.
-const poses = [
-	{ tier: 'none', file: 'pondering', w: 495 },
-	{ tier: 'basic', file: 'pose-camera', w: 702 },
-	{ tier: 'pro', file: 'laptop', w: 920 },
-];
 ---
 
 <section id="services" data-scene="services" class="section overflow-hidden" aria-labelledby="services-title">
@@ -22,33 +15,10 @@ const poses = [
 		<p class="reveal eyebrow mb-4 sm:mb-6">JEDCREATIVES</p>
 
 		<div class="pricing relative" data-tier="none">
-			<h2 id="services-title" class="pricing-word reveal-title">
+			<h2 id="services-title" class="pricing-word reveal-title" data-fit>
 				<span aria-hidden="true"><SplitWords text="Pricing" /></span>
 				<span class="sr-only">Services and pricing</span>
 			</h2>
-
-			<!-- Jameel: rises in when the section first appears, then breathes gently. The pose follows what you
-			     hover: thinking by default, the camera for Basic, the laptop for Pro. -->
-			<div class="pricing-person" aria-hidden="true" data-person>
-				<div class="person-float">
-					{
-						poses.map((pose) => (
-							<img
-								src={asset(`img/cutouts/${pose.file}-lg.webp`)}
-								srcset={`${asset(`img/cutouts/${pose.file}-sm.webp`)} 480w, ${asset(`img/cutouts/${pose.file}-lg.webp`)} ${pose.w}w`}
-								sizes="320px"
-								width={pose.w}
-								height="1400"
-								alt=""
-								loading="lazy"
-								decoding="async"
-								class:list={['pose', pose.tier === 'none' && 'is-on']}
-								data-pose={pose.tier}
-							/>
-						))
-					}
-				</div>
-			</div>
 
 			<div
 				class="pricing-carousel reveal relative [--delay:120ms]"
@@ -60,7 +30,8 @@ const poses = [
 				<div class="panes">
 					<!-- View 1: price table -->
 					<div class="pane is-active" role="group" aria-roledescription="slide" aria-label={`1 of 2: ${views[0]}`} data-pane>
-						<div class="glass-panel table-panel relative overflow-hidden p-3 sm:p-6" data-table-panel>
+						<div class="glass-panel table-panel relative overflow-hidden p-3 sm:p-6" data-table-panel data-spot>
+							<span class="spot" aria-hidden="true"></span>
 							<span class="col-bg col-basic" aria-hidden="true"></span>
 							<span class="col-bg col-pro" aria-hidden="true"></span>
 							<table class="price-table relative w-full">
@@ -69,7 +40,7 @@ const poses = [
 								</colgroup>
 								<thead>
 									<tr>
-										<th colspan="2" scope="col" class="font-title text-[10px] tracking-[0.18em] text-white uppercase sm:text-sm">Services</th>
+										<th colspan="2" scope="col" class="font-title text-[0.625rem] tracking-[0.18em] text-white uppercase sm:text-sm">Services</th>
 										<th scope="col"><span class="tier-pill">Basic</span></th>
 										<th scope="col"><span class="tier-pill is-pro">Pro</span></th>
 									</tr>
@@ -130,26 +101,58 @@ const poses = [
 						<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
 					</button>
 				</div>
-				<p class="mt-4 text-center text-[11px] text-white/55">
+				<p class="mt-4 text-center text-[0.6875rem] text-white/55">
 					Prices in {pricing.currency} · “+” means starting price — the final quote depends on the project.
 				</p>
+			</div>
+		</div>
+
+		<!-- Monthly packages -->
+		<div class="packages mt-24 sm:mt-32" aria-labelledby="packages-title">
+			<h2 id="packages-title" class="pricing-word reveal-title" data-fit>
+				<span><SplitWords text="Packages" /></span>
+			</h2>
+			<div class="pkg-grid">
+				{
+					packages.map((pk, i) => (
+						<article class:list={['pkg reveal', `pkg-${pk.name.toLowerCase()}`]} style={`--delay:${i * 120}ms`} data-spot>
+							<span class="spot" aria-hidden="true"></span>
+							{/* Edge highlight: lights the border where the pointer is (see "Edge highlight" styles) */}
+							<span class="edge" aria-hidden="true" />
+							<span class="pkg-pill">{pk.name}</span>
+							<p class="pkg-price">
+								<span class="pkg-amount">{pk.price}</span>
+								<span class="pkg-period">{pk.period}</span>
+							</p>
+							<ul class="pkg-features">
+								{pk.features.map((f, j) => (
+									<li style={`--j:${j}`}>{f}</li>
+								))}
+							</ul>
+						</article>
+					))
+				}
 			</div>
 		</div>
 	</div>
 </section>
 
 <style>
-	/* ---------- Layout ---------- */
+	/* ---------- Layout: everything centred ---------- */
+	.pricing,
+	.packages {
+		max-width: 56rem;
+		margin-inline: auto;
+	}
 	.pricing-word {
 		position: relative;
-		font-family: var(--font-title);
+		font-family: var(--font-epic);
 		font-weight: 800;
-		/* Phones: full width. Desktop (below): sized to fill the left column exactly ("PRICING" ≈ 5.45em wide),
-		   capped by screen height so the whole section fits on one screen. */
-		font-size: clamp(3.2rem, calc((100vw - 2rem) / 5.6), 13rem);
-		line-height: 0.82;
-		letter-spacing: -0.02em;
+		/* Start size; the script below then fits each title exactly to the column width. */
+		font-size: clamp(3rem, 11vw, 9rem);
+		line-height: 0.85;
 		text-transform: uppercase;
+		text-align: center;
 		white-space: nowrap;
 		color: #fff;
 	}
@@ -158,82 +161,268 @@ const poses = [
 		z-index: 2;
 		margin-top: clamp(1rem, 2.2vw, 1.75rem);
 	}
-	.pricing-person {
-		display: none;
+
+	/* ---------- Packages ---------- */
+	.packages {
+		max-width: 72rem;
 	}
-	@media (min-width: 64rem) {
-		/* Left column: title + panel. Right column: Jameel, from the top of the title down past the panel. */
-		.pricing-word,
-		.pricing-carousel {
-			width: 64%;
-		}
-		.pricing-word {
-			font-size: min(calc(min(100vw - 5rem, 75rem) * 0.64 / 5.45), 19svh);
-		}
-		.pricing-person {
-			display: block;
-			position: absolute;
-			z-index: 1;
-			right: 0;
-			top: -1rem;
-			bottom: -3rem;
-			width: 34%;
-			/* Entrance (once): rises in from below out of a soft blur. */
-			opacity: 0;
-			translate: 0 90px;
-			scale: 0.94;
-			filter: blur(10px);
-			transition:
-				opacity 1s var(--ease-soft),
-				translate 1.3s var(--ease-soft),
-				scale 1.3s var(--ease-soft),
-				filter 1s var(--ease-soft);
-		}
-		:global(html:not(.js)) .pricing-person,
-		.pricing-person.is-in {
-			opacity: 1;
-			translate: 0 0;
-			scale: 1;
-			filter: none;
+	.pkg-grid {
+		display: grid;
+		gap: 1rem;
+		margin-top: clamp(1.25rem, 2.5vw, 2rem);
+		padding: 0.9rem;
+		border-radius: 30px;
+		background: rgb(255 255 255 / 0.04);
+		border: 1px solid rgb(255 255 255 / 0.14);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.12),
+			0 40px 90px -40px rgb(0 0 0 / 0.8);
+		-webkit-backdrop-filter: blur(14px);
+		backdrop-filter: blur(14px);
+	}
+	@media (min-width: 52rem) {
+		.pkg-grid {
+			grid-template-columns: repeat(3, 1fr);
+			gap: 1.1rem;
+			padding: 1.1rem;
 		}
 	}
-	/* Gentle breathing once he is in. */
-	.person-float {
+	.pkg {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		padding: 1.6rem 1.5rem 1.8rem;
+		border-radius: 22px;
+		transition:
+			opacity 0.8s var(--ease-soft) var(--delay, 0ms),
+			transform 0.8s var(--ease-soft) var(--delay, 0ms),
+			translate 0.5s var(--ease-soft),
+			scale 0.5s var(--ease-soft),
+			border-color 0.4s,
+			box-shadow 0.5s var(--ease-soft);
+	}
+	.pkg > :not(.spot, .edge) {
+		position: relative;
+		z-index: 2;
+	}
+
+	/* ---------- Hover: shared polish ---------- */
+	/* A soft light that follows the pointer across the panel / card (--sx/--sy set by the script). */
+	.spot {
 		position: absolute;
 		inset: 0;
-		animation: person-breathe 7s ease-in-out infinite;
+		z-index: 1;
+		border-radius: inherit;
+		background: radial-gradient(260px circle at var(--sx, 50%) var(--sy, 0%), rgb(255 255 255 / 0.14), transparent 70%);
+		opacity: 0;
+		transition: opacity 0.4s;
+		pointer-events: none;
 	}
-	@keyframes person-breathe {
-		50% {
-			translate: 0 -6px;
+	@media (hover: hover) {
+		[data-spot]:hover > .spot {
+			opacity: 1;
+		}
+		/* The other cards dim a little so the hovered one stands out. */
+		.pkg-grid:hover .pkg:not(:hover) {
+			filter: saturate(0.75) brightness(0.8);
+		}
+		.pkg {
+			filter: none;
+		}
+		.pkg:hover {
+			translate: 0 -10px;
+			scale: 1.02;
+		}
+		.pkg-basic:hover {
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.3),
+				0 24px 50px -20px rgb(0 0 0 / 0.8),
+				0 0 40px -12px rgb(140 170 255 / 0.6);
+		}
+		.pkg-pro:hover {
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.35),
+				0 24px 60px -20px rgb(60 0 120 / 0.8),
+				0 0 60px -6px rgb(170 80 255 / 0.9);
+		}
+		.pkg-premium:hover {
+			box-shadow:
+				inset 0 1px 0 rgb(255 255 255 / 0.45),
+				0 24px 60px -20px rgb(80 0 120 / 0.8),
+				0 0 80px -4px rgb(240 80 230 / 1);
+		}
+		/* Price glows; the ticks light up one after another. */
+		.pkg:hover .pkg-amount {
+			text-shadow: 0 0 24px rgb(255 255 255 / 0.55);
+		}
+		.pkg:hover .pkg-features li::before {
+			color: #fff;
+			text-shadow: 0 0 10px rgb(255 255 255 / 0.9);
+			scale: 1.2;
+			transition-delay: calc(var(--j) * 60ms);
+		}
+		.pkg:hover .pkg-pill::after {
+			translate: 120% 0;
 		}
 	}
-	/* Poses share one bottom-centre anchor; swapping crossfades with a small lift and blur. */
-	.pose {
-		-webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent);
-		mask-image: linear-gradient(to bottom, #000 80%, transparent);
-		position: absolute;
-		bottom: 0;
-		left: 50%;
-		height: 100%;
-		width: auto;
-		max-width: none;
-		opacity: 0;
-		translate: -50% 18px;
-		scale: 0.97;
-		filter: blur(6px);
-		transform-origin: 50% 100%;
-		transition:
-			opacity 0.5s var(--ease-soft),
-			translate 0.6s var(--ease-soft),
-			scale 0.6s var(--ease-soft),
-			filter 0.5s var(--ease-soft);
+	.pkg-grid .pkg {
+		transition-property: opacity, transform, translate, scale, border-color, box-shadow, filter;
 	}
-	.pose.is-on {
-		opacity: 1;
-		translate: -50% 0;
-		scale: 1;
-		filter: none;
+	.pkg-amount {
+		transition: text-shadow 0.4s;
+	}
+	.pkg-features li::before {
+		display: inline-block;
+		transition:
+			scale 0.35s var(--ease-soft),
+			color 0.3s,
+			text-shadow 0.3s;
+	}
+	/* Light sweep across the pill on hover. */
+	.pkg-pill {
+		position: relative;
+		overflow: hidden;
+	}
+	.pkg-pill::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.6) 50%, transparent 70%);
+		translate: -120% 0;
+		transition: translate 0.8s var(--ease-soft);
+	}
+
+	/* ---------- Edge highlight ----------
+	   The card's border is drawn by two layers instead of a CSS border: .edge (light) underneath, and the card's
+	   own fill (::after, background: inherit) 1.5px smaller on top of it — so only a 1.5px rim of .edge shows.
+	   On hover the rim brightens and a hot spot follows the pointer (--sx/--sy) around the edge. */
+	.edge {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		border-radius: inherit;
+		background:
+			radial-gradient(180px circle at var(--sx, 50%) var(--sy, 0%), transparent, transparent),
+			linear-gradient(160deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0.12) 45%, rgb(255 255 255 / 0.3));
+		transition: opacity 0.4s;
+		pointer-events: none;
+	}
+	.pkg::after {
+		content: '';
+		position: absolute;
+		inset: 1.5px;
+		z-index: 0;
+		border-radius: calc(22px - 1.5px);
+		background: inherit;
+		pointer-events: none;
+	}
+	.pkg-basic {
+		--edge: 170 200 255;
+	}
+	.pkg-pro {
+		--edge: 210 160 255;
+	}
+	.pkg-premium {
+		--edge: 255 150 235;
+	}
+	@media (hover: hover) {
+		.pkg:hover .edge {
+			background:
+				radial-gradient(170px circle at var(--sx, 50%) var(--sy, 0%), #fff, rgb(var(--edge) / 0.9) 30%, transparent 70%),
+				linear-gradient(160deg, rgb(var(--edge) / 0.85), rgb(var(--edge) / 0.35) 50%, rgb(var(--edge) / 0.75));
+		}
+		/* Inner rim glow just inside the edge. */
+		.pkg:hover::after {
+			box-shadow: inset 0 0 22px -6px rgb(var(--edge) / 0.7);
+		}
+	}
+
+	/* ---------- Pricing table: extra hover polish ---------- */
+	@media (hover: hover) {
+		.price-table tbody tr:hover .price {
+			color: #fff;
+			text-shadow: 0 0 10px rgb(255 255 255 / 0.45);
+		}
+		.price-table tbody tr:hover .price.is-pro {
+			text-shadow: 0 0 14px rgb(140 190 255 / 0.9);
+		}
+		.price-table tbody tr:hover .svc {
+			text-shadow: 0 0 10px rgb(255 255 255 / 0.35);
+		}
+	}
+	.price-table .price,
+	.price-table .svc {
+		transition:
+			translate 0.3s var(--ease-soft),
+			text-shadow 0.3s;
+	}
+	/* Basic: dark glass. Pro: violet into blue. Premium: magenta into electric blue, glowing. */
+	.pkg-basic {
+		background: linear-gradient(170deg, #07071a 0%, #0b0b2a 60%, #141a5e 100%);
+	}
+	.pkg-pro {
+		background: linear-gradient(165deg, #7a1fd6 0%, #5a1bb8 45%, #3a2cc9 100%);
+	}
+	.pkg-premium {
+		background:
+			radial-gradient(90% 60% at 0% 45%, rgb(255 60 200 / 0.75), transparent 70%),
+			linear-gradient(160deg, #c026d3 0%, #8b2cf5 45%, #3b4dff 100%);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.35),
+			0 0 50px -10px rgb(200 70 255 / 0.85);
+	}
+	.pkg-pill {
+		align-self: flex-start;
+		padding: 0.35rem 1rem;
+		border-radius: 0.65rem;
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: #fff;
+		background: rgb(255 255 255 / 0.22);
+		box-shadow: 0 0 18px -4px rgb(255 255 255 / 0.5);
+	}
+	.pkg-pro .pkg-pill {
+		background: linear-gradient(90deg, #b62ad8, #8b2cf5);
+	}
+	.pkg-premium .pkg-pill {
+		background: linear-gradient(90deg, #4f5bff, #c026d3);
+	}
+	.pkg-price {
+		display: flex;
+		align-items: baseline;
+		gap: 0.4rem;
+		margin-top: 2rem;
+	}
+	.pkg-amount {
+		font-family: var(--font-epic);
+		font-weight: 800;
+		font-size: clamp(2rem, 3.4vw, 2.8rem);
+		line-height: 1;
+		color: #fff;
+	}
+	.pkg-period {
+		font-size: 0.85rem;
+		color: rgb(255 255 255 / 0.75);
+	}
+	.pkg-features {
+		display: grid;
+		gap: 1rem;
+		margin-top: 1.6rem;
+		font-size: 0.95rem;
+		line-height: 1.35;
+		color: rgb(255 255 255 / 0.92);
+	}
+	.pkg-features li {
+		position: relative;
+		padding-left: 1.5rem;
+	}
+	.pkg-features li::before {
+		content: '✓';
+		position: absolute;
+		left: 0;
+		font-weight: 600;
 	}
 
 	/* ---------- Glass ---------- */
@@ -578,22 +767,13 @@ const poses = [
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.pricing-person {
-			translate: none !important;
-			scale: none !important;
-			filter: none !important;
-			transition: opacity 0.4s;
-		}
-		.person-float,
 		.col-pro::after {
 			animation: none;
 		}
-		.pose {
-			translate: -50% 0;
-			scale: none;
-			filter: none;
-			transition: opacity 0.3s;
+		.pkg {
+			transition: opacity 0.4s;
 		}
+
 		.pane {
 			transition: opacity 0.3s;
 		}
@@ -668,24 +848,9 @@ const poses = [
 <script>
 	const root = document.querySelector<HTMLElement>('[data-pricing]');
 
-	// Jameel: rise in once, the first time the section is in view.
-	const person = document.querySelector<HTMLElement>('[data-person]');
-	if (person) {
-		const io = new IntersectionObserver(
-			([entry]) => {
-				if (!entry.isIntersecting) return;
-				io.disconnect();
-				person.classList.add('is-in');
-			},
-			{ threshold: 0.5 }, // most of the pricing area is on screen, so the whole entrance is seen
-		);
-		io.observe(person.parentElement!);
-	}
-
-	// Hovered tier → highlighted column/card + matching pose (camera for Basic, laptop for Pro).
+	// Hovered tier → highlighted column/card.
 	const pricing = document.querySelector<HTMLElement>('.pricing[data-tier]');
 	if (pricing) {
-		const poses = [...pricing.querySelectorAll<HTMLElement>('[data-pose]')];
 		const table = pricing.querySelector<HTMLElement>('[data-table-panel]');
 		const colBasic = pricing.querySelector<HTMLElement>('.col-basic');
 		const colPro = pricing.querySelector<HTMLElement>('.col-pro');
@@ -694,7 +859,6 @@ const poses = [
 			if (next === tier) return;
 			tier = next;
 			pricing.dataset.tier = next;
-			for (const img of poses) img.classList.toggle('is-on', img.dataset.pose === next);
 		};
 		// Table: which column is under the pointer (cells and the gaps between rows both count).
 		const fromTable = (e: PointerEvent) => {
@@ -714,11 +878,41 @@ const poses = [
 			card.addEventListener('pointerenter', () => setTier(card.dataset.tierZone!));
 			card.addEventListener('pointerleave', (e) => e.pointerType === 'mouse' && setTier('none'));
 		}
-		// Touch: tapping elsewhere returns to the default pose.
+		// Touch: tapping elsewhere clears the highlight.
 		document.addEventListener('pointerdown', (e) => {
 			if (e.pointerType !== 'mouse' && !pricing.contains(e.target as Node)) setTier('none');
 		});
 	}
+
+	// Pointer spotlight on the pricing panel and the package cards.
+	for (const el of document.querySelectorAll<HTMLElement>('#services [data-spot]')) {
+		el.addEventListener('pointermove', (e) => {
+			const r = el.getBoundingClientRect();
+			el.style.setProperty('--sx', `${e.clientX - r.left}px`);
+			el.style.setProperty('--sy', `${e.clientY - r.top}px`);
+		});
+	}
+
+	// Fit each big title ("PRICING", "PACKAGES") exactly to its column, whatever the font's letter widths.
+	// Re-fits whenever the text changes size (e.g. when the Epic Pro font finishes loading) or the window resizes.
+	const titles = [...document.querySelectorAll<HTMLElement>('#services [data-fit]')];
+	const fit = (el: HTMLElement) => {
+		// offsetWidth = layout width, unaffected by the section's 3D scroll transform.
+		const text = (el.firstElementChild as HTMLElement).offsetWidth;
+		const box = el.clientWidth;
+		if (!text || !box) return;
+		const size = parseFloat(getComputedStyle(el).fontSize);
+		const next = Math.min((size * box * 0.99) / text, window.innerHeight * 0.2);
+		if (Math.abs(next - size) > 0.5) el.style.fontSize = `${next}px`;
+	};
+	const ro = new ResizeObserver((entries) =>
+		entries.forEach((e) => fit((e.target as HTMLElement).closest<HTMLElement>('[data-fit]')!)),
+	);
+	for (const el of titles) {
+		ro.observe(el.firstElementChild!);
+		ro.observe(el);
+	}
+	document.fonts?.ready.then(() => titles.forEach(fit));
 
 	if (root) {
 		const panes = [...root.querySelectorAll<HTMLElement>('[data-pane]')];
