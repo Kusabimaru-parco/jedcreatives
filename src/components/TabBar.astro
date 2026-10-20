@@ -1,0 +1,195 @@
+---
+// Phones only (< 640px): an app-style floating tab bar at the bottom of the screen, always within thumb reach.
+// The tab for the section you're reading lights up. Replaces the top link pill on phones.
+const tabs = [
+	{ href: '#top', label: 'Home', icon: '<path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z" />' },
+	{ href: '#about', label: 'About', icon: '<circle cx="12" cy="8.5" r="3.5" /><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" />' },
+	{
+		href: '#services',
+		label: 'Services',
+		icon: '<path d="M4 12.6V5a1 1 0 0 1 1-1h7.6a1 1 0 0 1 .7.3l6.4 6.4a1 1 0 0 1 0 1.4l-7.6 7.6a1 1 0 0 1-1.4 0L4.3 13.3a1 1 0 0 1-.3-.7z" /><circle cx="8.5" cy="8.5" r="1.4" />',
+	},
+	{ href: '#work-mobile', label: 'Work', icon: '<rect x="3.5" y="5" width="17" height="14" rx="3" /><path d="m10.5 9.5 4 2.5-4 2.5z" />' },
+	{ href: '#contact', label: 'Contact', icon: '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5" /><path d="m4.5 7.5 7.5 5.5 7.5-5.5" />' },
+];
+---
+
+<nav class="tabbar sm:hidden" aria-label="Sections" data-tabbar>
+	<ul>
+		<!-- Highlight that glides to the active tab -->
+		<li class="tab-glow" aria-hidden="true" data-tab-glow></li>
+		{
+			tabs.map((t) => (
+				<li>
+					<a href={t.href} class="tab" data-tab>
+						<svg viewBox="0 0 24 24" aria-hidden="true" set:html={t.icon} />
+						<span>{t.label}</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</nav>
+
+<style>
+	.tabbar {
+		position: fixed;
+		z-index: 50;
+		left: 0.75rem;
+		right: 0.75rem;
+		bottom: calc(0.75rem + env(safe-area-inset-bottom));
+		padding: 0.35rem;
+		border-radius: 1.4rem;
+		background: rgb(8 18 60 / 0.72);
+		border: 1px solid rgb(255 255 255 / 0.16);
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.14),
+			0 14px 40px -12px rgb(0 0 0 / 0.75),
+			0 0 30px -10px rgb(63 140 255 / 0.5);
+		-webkit-backdrop-filter: blur(18px) saturate(150%);
+		backdrop-filter: blur(18px) saturate(150%);
+		/* Rises in after the hero (held by the intro until it hands off, like the top nav). */
+		animation: tabbar-in 0.8s var(--ease-soft) 1.2s both;
+	}
+	@keyframes tabbar-in {
+		from {
+			opacity: 0;
+			translate: 0 30px;
+		}
+	}
+	:global(html[data-intro]) .tabbar {
+		animation-play-state: paused;
+	}
+	.tabbar ul {
+		position: relative;
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+	}
+	/* The highlight pill: one element that glides (with a little stretch) between tabs. */
+	.tab-glow {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 20%;
+		border-radius: 1.05rem;
+		background: linear-gradient(180deg, rgb(63 120 255 / 0.6), rgb(30 77 255 / 0.38));
+		box-shadow:
+			inset 0 1px 0 rgb(255 255 255 / 0.22),
+			0 0 18px -4px rgb(63 140 255 / 0.7);
+		translate: calc(var(--i, 0) * 100%) 0;
+		transition:
+			translate 0.55s cubic-bezier(0.34, 1.3, 0.5, 1),
+			scale 0.35s var(--ease-soft);
+		pointer-events: none;
+	}
+	.tab-glow.is-moving {
+		scale: 1.08 0.92;
+	}
+	.tabbar li:not(.tab-glow) {
+		position: relative;
+		z-index: 1;
+	}
+	.tab {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.2rem;
+		padding: 0.5rem 0 0.45rem;
+		border-radius: 1.05rem;
+		font-size: 0.66rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
+		color: rgb(255 255 255 / 0.6);
+		transition: color 0.35s;
+		-webkit-tap-highlight-color: transparent;
+	}
+	.tab svg {
+		width: 1.3rem;
+		height: 1.3rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.7;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition:
+			translate 0.35s var(--ease-soft),
+			scale 0.2s var(--ease-soft),
+			filter 0.35s;
+	}
+	/* Press feedback */
+	.tab:active svg {
+		scale: 0.85;
+	}
+	.tab[aria-current] {
+		color: #fff;
+	}
+	.tab[aria-current] svg {
+		translate: 0 -1px;
+		filter: drop-shadow(0 0 6px rgb(120 180 255 / 0.9));
+	}
+	.tab:focus-visible {
+		outline: 2px solid var(--color-cyan);
+		outline-offset: -2px;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.tabbar {
+			animation: none;
+		}
+		.tab-glow {
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	// Highlight the tab of the section being read. Tapping a tab moves the highlight straight there and holds it
+	// while the page glides to that section (instead of flickering through every tab on the way).
+	const bar = document.querySelector<HTMLElement>('[data-tabbar]');
+	if (bar) {
+		const glow = bar.querySelector<HTMLElement>('[data-tab-glow]')!;
+		const tabs = [...bar.querySelectorAll<HTMLAnchorElement>('[data-tab]')]
+			.map((a) => ({ a, el: document.querySelector<HTMLElement>(a.hash) }))
+			.filter((t): t is { a: HTMLAnchorElement; el: HTMLElement } => !!t.el);
+		let current: HTMLAnchorElement | null = null;
+		let lockUntil = 0;
+		let frame = 0;
+
+		const activate = (a: HTMLAnchorElement | null) => {
+			if (!a || a === current) return;
+			current?.removeAttribute('aria-current');
+			a.setAttribute('aria-current', 'true');
+			current = a;
+			glow.style.setProperty('--i', String(tabs.findIndex((t) => t.a === a)));
+			glow.classList.add('is-moving');
+			setTimeout(() => glow.classList.remove('is-moving'), 220);
+		};
+		const update = () => {
+			frame = 0;
+			if (performance.now() < lockUntil) return;
+			const line = window.innerHeight * 0.28; // a section counts once its top passes 28% down the screen
+			let active = tabs[0]?.a ?? null;
+			for (const { a, el } of tabs) if (el.offsetParent !== null && el.getBoundingClientRect().top <= line) active = a;
+			if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) active = tabs.at(-1)!.a;
+			activate(active);
+		};
+
+		for (const { a, el } of tabs) {
+			a.addEventListener('click', (e) => {
+				e.preventDefault();
+				activate(a);
+				lockUntil = performance.now() + 1500; // released early when the scroll finishes
+				const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+				el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+				history.replaceState(null, '', a.hash);
+			});
+		}
+		addEventListener('scrollend', () => {
+			lockUntil = 0;
+			update();
+		});
+		addEventListener('scroll', () => frame || (frame = requestAnimationFrame(update)), { passive: true });
+		addEventListener('resize', update);
+		update();
+	}
+</script>

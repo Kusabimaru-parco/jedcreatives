@@ -6,8 +6,8 @@ import { heroTags, site } from '../data/site';
 // Where each floating tag sits around the photo (mobile / desktop).
 const tagPositions = [
 	'left-[4%] top-[47%] sm:left-[15%] sm:top-[56%]',
-	// Video Editing: lower, and never higher than just below the wordmark (which grows with screen width).
-	'right-[4%] top-[55%] sm:right-[15%] sm:top-[max(57%,calc(19%+13.5vw+4.5rem))]',
+	// Video Editing: moved above the face on phones; tablet/desktop keep their wordmark-aware position.
+	'right-[4%] top-[48%] sm:right-[15%] sm:top-[max(57%,calc(19%+13.5vw+4.5rem))]',
 	'left-[5%] top-[66%] sm:left-[21%] sm:top-[72%]',
 	'right-[6%] top-[73%] sm:right-[22%] sm:top-[69%]',
 ];
@@ -23,7 +23,7 @@ const tagDepths = [18, 22, 26, 14];
 	<div class="hero-stage absolute inset-0 flex flex-col" data-hero-stage>
 
 	<!-- Wordmark (behind the photo). Outer = mouse parallax + tilt, inner = slow 3D float. -->
-	<div class="hero-3d pointer-events-none absolute inset-x-0 top-[26%] z-10 text-center sm:top-[19%]" style="--depth:6; --tilt:1.5">
+	<div class="hero-3d pointer-events-none absolute inset-x-0 top-[12%] z-10 text-center sm:top-[19%]" style="--depth:6; --tilt:1.5">
 		<div class="hero-float" style="--float:12s; --float-y:-3px; --float-rx:0.8deg">
 		<p class="eyebrow mb-3 text-[0.625rem] tracking-[0.2em] text-white/70 sm:mb-5 sm:text-xs sm:tracking-[0.25em]">
 			{site.name} · {site.role}<span class="hidden sm:inline"> </span>
@@ -49,7 +49,7 @@ const tagDepths = [18, 22, 26, 14];
 		alt={`${site.name} in a brown leather jacket, raising a camera to take a photo`}
 		fetchpriority="high"
 		decoding="async"
-		class="hero-photo pointer-events-none absolute bottom-0 left-1/2 h-[52svh] w-auto max-w-none -translate-x-1/2 select-none sm:h-[72svh] sm:max-h-[57.5rem]"
+		class="hero-photo pointer-events-none absolute bottom-0 left-1/2 h-[60svh] w-auto max-w-none -translate-x-1/2 select-none sm:h-[72svh] sm:max-h-[57.5rem]"
 	/>
 		</div>
 	</div>
@@ -71,7 +71,7 @@ const tagDepths = [18, 22, 26, 14];
 	</ul>
 
 	<!-- Scroll hint → About ("Get a project?" lives in the nav) -->
-	<div class="pointer-events-none relative z-30 mt-auto flex justify-center px-4 pb-6 sm:pb-9">
+	<div class="pointer-events-none relative z-30 mt-auto flex justify-center px-4 pb-6 max-sm:hidden sm:pb-9">
 		<a href="#about" class="scroll-hint hero-in pointer-events-auto flex flex-col items-center gap-2.5 rounded-full px-3 py-2 [--delay:900ms]">
 			<span class="scroll-mouse" aria-hidden="true"><span></span></span>
 			<span class="text-[0.625rem] font-medium tracking-[0.3em] text-white/75 uppercase">Scroll to About me</span>

@@ -93,8 +93,14 @@ const {
 			const clamp = (v: number) => Math.min(1, Math.max(0, v));
 			const smooth = (v: number) => v * v * (3 - 2 * v);
 			let frame = 0;
+			// Desktop only: on phones/tablets the fading would hide content while you're still reading it.
+			const desktop = window.matchMedia('(min-width: 64rem)');
 			const update = () => {
 				frame = 0;
+				if (!desktop.matches) {
+					for (const { el } of items) if (el.style.transform) el.style.transform = el.style.opacity = el.style.transformOrigin = '';
+					return;
+				}
 				const vh = window.innerHeight;
 				for (const { el, section, enters, exits } of items) {
 					const r = section.getBoundingClientRect();

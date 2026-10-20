@@ -139,8 +139,9 @@
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10;
   }
 
+  /* Vertical spacing per section: compact on phones, roomier on tablets, full on desktop. */
   .section {
-    @apply relative isolate py-24 sm:py-32;
+    @apply relative isolate py-16 sm:py-20 lg:py-32;
   }
 }
 
@@ -184,6 +185,32 @@ html {
   --grid-size: 5rem; /* 80px at the 1366px reference; scales with the layout */
   --grid-pos: center center;
   --grid-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cpath d='M0 64H128M64 0V128' stroke='%23fff' stroke-opacity='.12' stroke-width='1.6' fill='none'/%3E%3Cg transform='translate(64 64) scale(.60) translate(-64 -64)'%3E%3Ccircle cx='64' cy='64' r='7' fill='%23bcd6ff' fill-opacity='.1'/%3E%3Cpath d='M64 55.5Q65 63 72.5 64Q65 65 64 72.5Q63 65 55.5 64Q63 63 64 55.5Z' fill='%23fff' fill-opacity='.30'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Phones: a grid becomes a horizontal swipe row (cards side by side, the next one peeking in), so long lists
+   of videos or packages don't stretch the page. From 640px up the element's normal grid layout applies. */
+@media (max-width: 39.99rem) {
+  .swipe-row {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 0.85rem !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 1rem;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .swipe-row::-webkit-scrollbar {
+    display: none;
+  }
+  .swipe-row > * {
+    flex: 0 0 84%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
 }
 
 /* Intro: lock scrolling and hold every hero/nav animation at its first frame until the intro hands off. */

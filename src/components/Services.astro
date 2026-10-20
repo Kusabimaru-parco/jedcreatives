@@ -1,7 +1,7 @@
 ---
 // Services & pricing, centred: a "PRICING" title over a frosted-glass panel with two views (the price table,
 // and Basic vs Pro) switched by arrows/dots/swipe with a 3D turn; then "PACKAGES" with the three monthly plans.
-// Content: `pricing` and `packages` in src/data/site.ts. Big titles use the Epic Pro font (see Layout.astro).
+// Content: `pricing` and `packages` in src/data/site.ts. Package titles use Epic Pro (see Layout.astro).
 import SplitWords from './SplitWords.astro';
 import { packages, pricing } from '../data/site';
 
@@ -112,7 +112,7 @@ const views = ['Prices', 'Basic vs Pro'];
 			<h2 id="packages-title" class="pricing-word reveal-title" data-fit>
 				<span><SplitWords text="Packages" /></span>
 			</h2>
-			<div class="pkg-grid">
+			<div class="pkg-grid swipe-row" data-pkg-row>
 				{
 					packages.map((pk, i) => (
 						<article class:list={['pkg reveal', `pkg-${pk.name.toLowerCase()}`]} style={`--delay:${i * 120}ms`} data-spot>
@@ -133,6 +133,10 @@ const views = ['Prices', 'Basic vs Pro'];
 					))
 				}
 			</div>
+			<!-- Phones: which plan you're on -->
+			<div class="pkg-dots sm:hidden" data-pkg-dots>
+				{packages.map((pk, i) => <button type="button" aria-label={`Show ${pk.name}`} aria-current={i === 0 ? 'true' : undefined} />)}
+			</div>
 		</div>
 	</div>
 </section>
@@ -146,7 +150,7 @@ const views = ['Prices', 'Basic vs Pro'];
 	}
 	.pricing-word {
 		position: relative;
-		font-family: var(--font-epic);
+		font-family: var(--font-title);
 		font-weight: 800;
 		/* Start size; the script below then fits each title exactly to the column width. */
 		font-size: clamp(3rem, 11vw, 9rem);
@@ -155,6 +159,9 @@ const views = ['Prices', 'Basic vs Pro'];
 		text-align: center;
 		white-space: nowrap;
 		color: #fff;
+	}
+	.packages .pricing-word {
+		font-family: var(--font-epic);
 	}
 	/* The title sits fully above the panel (nothing covers it). */
 	.pricing-carousel {
@@ -179,6 +186,39 @@ const views = ['Prices', 'Basic vs Pro'];
 			0 40px 90px -40px rgb(0 0 0 / 0.8);
 		-webkit-backdrop-filter: blur(14px);
 		backdrop-filter: blur(14px);
+	}
+	.pkg-dots {
+		display: flex;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+	.pkg-dots button {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 999px;
+		background: rgb(255 255 255 / 0.35);
+		transition:
+			width 0.4s var(--ease-soft),
+			background 0.3s;
+	}
+	.pkg-dots button[aria-current] {
+		width: 1.6rem;
+		background: #fff;
+	}
+	/* Phones: the plans become a swipe row, without the surrounding panel. */
+	@media (max-width: 39.99rem) {
+		.pkg-grid {
+			background: none;
+			border: 0;
+			box-shadow: none;
+			-webkit-backdrop-filter: none;
+			backdrop-filter: none;
+			align-items: stretch !important;
+		}
+		.pkg-grid > .pkg {
+			flex-basis: 86%;
+		}
 	}
 	@media (min-width: 52rem) {
 		.pkg-grid {
@@ -487,7 +527,7 @@ const views = ['Prices', 'Basic vs Pro'];
 	.price-table th,
 	.price-table td {
 		padding: 0.8rem 0.25rem;
-		font-size: 0.72rem;
+		font-size: 0.78rem;
 		font-weight: 500;
 		text-align: center;
 		color: #fff;
@@ -882,6 +922,23 @@ const views = ['Prices', 'Basic vs Pro'];
 		document.addEventListener('pointerdown', (e) => {
 			if (e.pointerType !== 'mouse' && !pricing.contains(e.target as Node)) setTier('none');
 		});
+	}
+
+	// Packages on phones: dots follow the swipe; tapping a dot scrolls to that plan.
+	{
+		const row = document.querySelector<HTMLElement>('[data-pkg-row]');
+		const dots = [...document.querySelectorAll<HTMLButtonElement>('[data-pkg-dots] button')];
+		if (row && dots.length) {
+			const cards = [...row.querySelectorAll<HTMLElement>('.pkg')];
+			const sync = () => {
+				const left = row.getBoundingClientRect().left;
+				let i = cards.findIndex((c) => c.getBoundingClientRect().right > left + 60);
+				if (row.scrollLeft + row.clientWidth >= row.scrollWidth - 4) i = cards.length - 1;
+				dots.forEach((d, k) => (k === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+			};
+			row.addEventListener('scroll', sync, { passive: true });
+			dots.forEach((d, k) => d.addEventListener('click', () => row.scrollTo({ left: cards[k].offsetLeft - 16, behavior: 'smooth' })));
+		}
 	}
 
 	// Pointer spotlight on the pricing panel and the package cards.

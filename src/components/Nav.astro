@@ -14,7 +14,8 @@ const links = [
 			<img src={asset('img/logo-white.png')} alt="" width="17" height="19" class="h-[1.1875rem] w-auto" />
 		</a>
 		<div class="flex items-center gap-2">
-		<ul class="glass relative flex items-center gap-1 rounded-full p-1 text-sm" data-spy>
+		<!-- Links: in the bar from 640px up; on phones the bottom tab bar (TabBar.astro) takes over. -->
+		<ul class="glass relative hidden items-center gap-1 rounded-full p-1 text-sm sm:flex" data-spy>
 			<!-- Slides behind the link for the section in view -->
 			<li class="nav-pill pointer-events-none absolute top-1 bottom-1 left-0 rounded-full" aria-hidden="true" data-spy-pill></li>
 			{
@@ -32,7 +33,7 @@ const links = [
 			}
 		</ul>
 		<!-- Main call to action: always in view, goes to the contact form. -->
-		<a href="#contact" class="btn btn-primary nav-cta h-11 px-3.5 py-0 text-[0.8125rem] whitespace-nowrap sm:px-5 sm:text-sm" data-spy-cta>Get a project?</a>
+		<a href="#contact" class="btn btn-primary nav-cta h-11 px-4 py-0 text-[0.8125rem] whitespace-nowrap sm:px-5 sm:text-sm" data-spy-cta>Get a project?</a>
 		</div>
 	</nav>
 </header>
@@ -89,6 +90,7 @@ const links = [
 </style>
 
 <script>
+
 	// Scroll-spy: highlight the nav link of the section being read (About / Work / Contact).
 	// "Work" covers everything from #work down to Contact; nothing is highlighted over the hero.
 	const list = document.querySelector<HTMLElement>('[data-spy]');

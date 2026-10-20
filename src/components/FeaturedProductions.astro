@@ -4,11 +4,11 @@ import VideoCard from './VideoCard.astro';
 import { featured } from '../data/projects';
 ---
 
-<section id="work" data-scene="work" class="section" aria-labelledby="featured-title">
+<section id="work" data-scene="work" class="section max-sm:hidden" aria-labelledby="featured-title">
 
 	<div class="container-x">
 		<SectionTitle id="featured-title" eyebrow="Selected work" title="Featured Productions" />
-		<div class="grid gap-4 sm:grid-cols-2 sm:gap-6">
+		<div class="swipe-row grid gap-4 sm:grid-cols-2 sm:gap-6">
 			{
 				featured.map((p, i) => (
 					<div class="reveal" style={`--delay:${(i % 2) * 100}ms`}>

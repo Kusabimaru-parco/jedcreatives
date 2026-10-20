@@ -7,14 +7,14 @@ const landscape = animations2D.filter((p) => !p.vertical);
 const tall = animations2D.find((p) => p.vertical);
 ---
 
-<section id="animations" data-scene="animations" class="section" aria-labelledby="anim-title">
+<section id="animations" data-scene="animations" class="section max-sm:hidden" aria-labelledby="anim-title">
 
 	<div class="container-x">
 		<SectionTitle id="anim-title" eyebrow="Motion" title="2D Informative Animations" tag="2025 Projects" />
 
 		<!-- Desktop: landscape videos stacked on the left, the tall card spanning both rows on the right
 		     (0.63fr ≈ the width at which a 9:16 card matches two stacked 16:9 cards). -->
-		<div class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-[1fr_0.63fr] lg:grid-rows-2">
+		<div class="swipe-row grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-[1fr_0.63fr] lg:grid-rows-2">
 			{
 				landscape.map((p, i) => (
 					<div class="reveal" style={`--delay:${(i % 2) * 100}ms`}>
@@ -24,8 +24,8 @@ const tall = animations2D.find((p) => p.vertical);
 			}
 			{
 				tall && (
-					<div class="reveal mx-auto w-full max-w-xs sm:col-span-2 lg:col-span-1 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-none [--delay:200ms]">
-						<VideoCard project={tall} class="lg:aspect-auto lg:h-full" />
+					<div class="reveal w-full max-sm:mx-0 sm:mx-auto sm:max-w-xs sm:col-span-2 lg:col-span-1 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:max-w-none [--delay:200ms]">
+						<VideoCard project={tall} class="max-sm:aspect-video lg:aspect-auto lg:h-full" />
 					</div>
 				)
 			}

@@ -57,7 +57,7 @@ const slots = [
 			</dl>
 		</div>
 
-		<div class="reveal relative mx-auto mt-24 w-full max-w-sm sm:mt-28 lg:col-span-5 lg:mt-0 lg:max-w-none lg:pt-9 [--delay:150ms]">
+		<div class="reveal relative mx-auto mt-6 w-full max-w-sm sm:mt-28 lg:col-span-5 lg:mt-0 lg:max-w-none lg:pt-9 [--delay:150ms]">
 			<!-- App window behind the photo: shows a CSS mock of the selected tool (switched by the orbit below). -->
 			<div class="about-stage" data-thought>
 				<div class="thought-halo" aria-hidden="true"></div>
@@ -157,6 +157,71 @@ const slots = [
 		width: 60%;
 		animation: thought-drift 8s ease-in-out infinite;
 	}
+	/* ═══════════════════════ MOBILE VIEW ONLY (phones, under 640px wide) ═══════════════════════
+	   Everything in this block affects phones only — tablet and desktop are untouched.
+	   Positions are % of the photo area (left/top: bigger = further right/down). Each tool uses `left`
+	   OR `right` — the other one stays `auto`. */
+	@media (max-width: 39.99rem) {
+		/* ── Portrait position: negative X moves left; positive Y moves down ── */
+		.about-photo {
+			translate: 0% 0%;
+		}
+
+		/* ── App window (the animated tool background) ── */
+		.about-stage {
+			top: -5%; /* ← up / down */
+			right: 10rem; /* ← more negative = further right (-1rem touches the screen edge) */
+			width: 50%; /* ← size (height follows automatically) */
+		}
+		/* Thought dots between his head and the window */
+		.about-stage .thought-dot.d1 {
+			left: -8%;
+			top: 80%;
+		}
+		.about-stage .thought-dot.d2 {
+			left: -5%;
+			top: 56%;
+		}
+
+		/* ── Floating tools: size ── */
+		.tool-tile {
+			width: 3rem !important; /* ← tile size */
+			height: 3rem !important;
+		}
+		.tool-face :global(svg) {
+			width: 66%; /* ← icon size inside the tile */
+			height: 66%;
+		}
+
+		/* ── Floating tools: position ── */
+		.tool[data-tool='photoshop'] {
+			left: 21%;
+			right: auto;
+			top: 12%;
+		}
+		.tool[data-tool='premiere'] {
+			left: auto;
+			right: 2%;
+			top: 22%;
+		}
+		.tool[data-tool='after-effects'] {
+			left: 2rem;
+			right: auto;
+			top: 38%;
+		}
+		.tool[data-tool='krita'] {
+			left: auto;
+			right: 0;
+			top: 56%;
+		}
+		.tool[data-tool='blender'] {
+			left: 13%;
+			right: auto;
+			top: 72%;
+		}
+	}
+	/* ═════════════════════════════════ end MOBILE VIEW ONLY ═════════════════════════════════ */
+
 	@media (min-width: 40rem) {
 		.about-stage {
 			top: -22%;
@@ -167,6 +232,7 @@ const slots = [
 	/* Desktop: in the open space between the title and the photo, up and to the left of his head
 	   (the photo column is top-aligned with the text, so his head sits level with "Hi, I'm Jameel."). */
 	@media (min-width: 64rem) {
+		
 		.about-stage {
 			top: -8%; /* ← move up (more negative) / down */
 			right: auto;

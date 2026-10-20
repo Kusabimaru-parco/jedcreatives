@@ -4,7 +4,7 @@ import VideoCard from './VideoCard.astro';
 import { more3D, reels } from '../data/projects';
 ---
 
-<section class="section" data-scene="more3d" aria-labelledby="more3d-title">
+<section class="section max-sm:hidden" data-scene="more3d" aria-labelledby="more3d-title">
 
 	<div class="container-x">
 		<SectionTitle
@@ -14,14 +14,15 @@ import { more3D, reels } from '../data/projects';
 		/>
 		<!-- Desktop: rows of three; a leftover pair shares the last row (two wider cards), so there are no gaps.
 		     Tablet: rows of two; a leftover single card spans the full width. -->
-		<div class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
+		<div class="swipe-row grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-6">
 			{
 				more3D.map((p, i) => (
 					<div
 						class:list={[
 							'reveal lg:col-span-2',
 							more3D.length % 3 === 2 && i >= more3D.length - 2 && 'lg:col-span-3',
-							more3D.length % 2 === 1 && i === more3D.length - 1 && 'sm:col-span-2 lg:col-span-2',
+							// tablet: a leftover single card sits centred at normal size instead of stretching full width
+							more3D.length % 2 === 1 && i === more3D.length - 1 && 'sm:col-span-2 sm:mx-auto sm:w-[calc(50%-0.75rem)] lg:col-span-2 lg:mx-0 lg:w-auto',
 							more3D.length % 2 === 1 && i === more3D.length - 1 && more3D.length % 3 === 2 && 'lg:col-span-3',
 						]}
 						style={`--delay:${(i % 3) * 100}ms`}

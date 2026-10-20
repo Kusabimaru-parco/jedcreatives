@@ -1,0 +1,177 @@
+---
+// Phones only (< 640px): all work in one section — filter chips (All / Featured / 2D / 3D / Reels) above a
+// single swipe row with a "3 / 18" counter. Replaces the four separate work sections on phones, which are
+// hidden there (see `max-sm:hidden` on them). Content comes from src/data/projects.ts like everything else.
+import SectionTitle from './SectionTitle.astro';
+import VideoCard from './VideoCard.astro';
+import { animations2D, featured, more3D, reels, studios, type Project } from '../data/projects';
+
+type Group = 'featured' | '2d' | '3d' | 'reels';
+const items: { project: Project; group: Group }[] = [
+	...featured.map((project) => ({ project, group: 'featured' as const })),
+	...animations2D.map((project) => ({ project, group: '2d' as const })),
+	...studios.map((project) => ({ project, group: '3d' as const })),
+	...more3D.map((project) => ({ project, group: '3d' as const })),
+	...reels.map((project) => ({ project, group: 'reels' as const })),
+];
+const filters: { id: 'all' | Group; label: string }[] = [
+	{ id: 'all', label: 'All' },
+	{ id: 'featured', label: 'Featured' },
+	{ id: '2d', label: '2D' },
+	{ id: '3d', label: '3D' },
+	{ id: 'reels', label: 'Reels' },
+];
+const count = (id: string) => (id === 'all' ? items.length : items.filter((it) => it.group === id).length);
+---
+
+<section id="work-mobile" data-scene="work" class="section sm:hidden" aria-labelledby="mw-title">
+	<div class="container-x">
+		<SectionTitle id="mw-title" eyebrow="Selected work" title="Work" />
+
+		<!-- Filter chips (scroll sideways if they don't fit) -->
+		<div class="mw-chips -mx-4 flex gap-2 overflow-x-auto px-4 pb-1" role="tablist" aria-label="Filter work" data-mw-chips>
+			{
+				filters.map((f, i) => (
+					<button
+						type="button"
+						role="tab"
+						class="mw-chip"
+						aria-selected={i === 0 ? 'true' : 'false'}
+						data-filter={f.id}
+					>
+						{f.label}
+						<span class="mw-chip-count">{count(f.id)}</span>
+					</button>
+				))
+			}
+		</div>
+
+		<!-- One swipe row; cards that don't match the filter are hidden -->
+		<div class="mw-row swipe-row mt-5" data-mw-row data-filter="all" aria-live="polite">
+			{
+				items.map(({ project, group }) => (
+					<div class="mw-item" data-group={group}>
+						<VideoCard project={project} phone={group === 'reels'} class="mw-card" />
+					</div>
+				))
+			}
+		</div>
+
+		<div class="mt-3 flex items-center justify-between text-xs text-white/60">
+			<span><b class="font-semibold text-white" data-mw-index>1</b> / <span data-mw-total>{items.length}</span></span>
+			<span class="flex items-center gap-1.5">Swipe <span aria-hidden="true">→</span></span>
+		</div>
+	</div>
+</section>
+
+<style>
+	.mw-chips {
+		scrollbar-width: none;
+	}
+	.mw-chips::-webkit-scrollbar {
+		display: none;
+	}
+	.mw-chip {
+		display: inline-flex;
+		flex: none;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.55rem 1rem;
+		border-radius: 999px;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: rgb(255 255 255 / 0.75);
+		background: rgb(255 255 255 / 0.07);
+		border: 1px solid rgb(255 255 255 / 0.14);
+		transition:
+			background 0.3s,
+			color 0.3s,
+			border-color 0.3s;
+	}
+	.mw-chip-count {
+		font-size: 0.7rem;
+		color: rgb(255 255 255 / 0.5);
+	}
+	.mw-chip[aria-selected='true'] {
+		color: #fff;
+		background: linear-gradient(180deg, #3f78ff, #1e4dff);
+		border-color: rgb(140 190 255 / 0.6);
+		box-shadow: 0 0 18px -4px rgb(63 120 255 / 0.8);
+	}
+	.mw-chip[aria-selected='true'] .mw-chip-count {
+		color: rgb(255 255 255 / 0.8);
+	}
+
+	/* Every card is 16:9 in the mixed rows; the Reels filter shows reels in their true 9:16 shape. */
+	.mw-row :global(.mw-card) {
+		aspect-ratio: 16 / 9 !important;
+	}
+	.mw-row[data-filter='reels'] :global(.mw-card) {
+		aspect-ratio: 9 / 16 !important;
+	}
+	.mw-row[data-filter='reels'] > .mw-item {
+		flex-basis: 62%;
+	}
+	.mw-item.is-out {
+		display: none;
+	}
+	.mw-item.is-in {
+		animation: mw-in 0.45s var(--ease-soft) both;
+	}
+	@keyframes mw-in {
+		from {
+			opacity: 0;
+			translate: 18px 0;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.mw-item.is-in {
+			animation: none;
+		}
+	}
+</style>
+
+<script>
+	const root = document.getElementById('work-mobile');
+	if (root) {
+		const row = root.querySelector<HTMLElement>('[data-mw-row]')!;
+		const chips = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')].filter((el) => el.tagName === 'BUTTON');
+		const items = [...row.querySelectorAll<HTMLElement>('.mw-item')];
+		const indexEl = root.querySelector<HTMLElement>('[data-mw-index]')!;
+		const totalEl = root.querySelector<HTMLElement>('[data-mw-total]')!;
+		const visible = () => items.filter((it) => !it.classList.contains('is-out'));
+
+		// Counter: which card is at the left edge of the row.
+		const updateIndex = () => {
+			const shown = visible();
+			const left = row.getBoundingClientRect().left;
+			let i = shown.findIndex((it) => it.getBoundingClientRect().right > left + 40);
+			if (row.scrollLeft + row.clientWidth >= row.scrollWidth - 4) i = shown.length - 1;
+			indexEl.textContent = String(Math.max(0, i) + 1);
+			totalEl.textContent = String(shown.length);
+		};
+		let frame = 0;
+		row.addEventListener('scroll', () => frame || (frame = requestAnimationFrame(() => ((frame = 0), updateIndex()))), { passive: true });
+
+		for (const chip of chips) {
+			chip.addEventListener('click', () => {
+				const f = chip.dataset.filter!;
+				chips.forEach((c) => c.setAttribute('aria-selected', String(c === chip)));
+				row.dataset.filter = f;
+				for (const it of items) {
+					const show = f === 'all' || it.dataset.group === f;
+					it.classList.toggle('is-out', !show);
+					it.classList.remove('is-in');
+					if (show) {
+						void it.offsetWidth; // restart the entrance animation
+						it.classList.add('is-in');
+					}
+				}
+				row.scrollTo({ left: 0 });
+				chip.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+				updateIndex();
+			});
+		}
+		updateIndex();
+	}
+</script>
