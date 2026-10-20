@@ -188,7 +188,7 @@ const views = ['Prices', 'Basic vs Pro'];
 		backdrop-filter: blur(14px);
 	}
 	.pkg-dots {
-		display: flex;
+		display: none;
 		justify-content: center;
 		gap: 0.5rem;
 		margin-top: 1rem;
@@ -208,6 +208,12 @@ const views = ['Prices', 'Basic vs Pro'];
 	}
 	/* Phones: the plans become a swipe row, without the surrounding panel. */
 	@media (max-width: 39.99rem) {
+		.pkg-dots {
+			display: flex;
+			justify-content: center;
+			gap: 0.5rem;
+			margin-top: 1rem;
+		}
 		.pkg-grid {
 			background: none;
 			border: 0;
