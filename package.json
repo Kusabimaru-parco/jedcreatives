@@ -14,8 +14,8 @@
     "build:netlify": "cross-env NETLIFY=true astro build"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.4.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.7",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
